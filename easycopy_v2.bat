@@ -17,7 +17,6 @@ setlocal enabledelayedexpansion
 for %%i in (%wxjpath%*.rar) do (set "stationame=%%~nxi")
 set iwb=%stationame:~0,3%
 set thisday=%date:~0,4%%date:~5,2%%date:~8,2%
-rem set "thisday=%thisday: =0%"
 set string1=C:\
 set string2=\
 set thisday=%string1%%iwb%%thisday%%string2%
