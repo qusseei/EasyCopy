@@ -12,12 +12,12 @@ echo.
 echo Type Enter To Created Save Path
 set /p Typestart=
 
-set wxjpath=C:\JD1AWXJ\
+set wxjpath=E:\JD1AWXJ\
 setlocal enabledelayedexpansion
 for %%i in (%wxjpath%*.rar) do (set "stationame=%%~nxi")
 set iwb=%stationame:~0,3%
 set thisday=%date:~0,4%%date:~5,2%%date:~8,2%
-set string1=C:\
+set string1=E:\
 set string2=\
 set thisday=%string1%%iwb%%thisday%%string2%
 if not exist %thisday% ( md %thisday% ) else (rd /s /q %thisday% && md %thisday% )
