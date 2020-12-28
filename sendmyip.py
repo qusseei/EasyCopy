@@ -1,3 +1,4 @@
+#2020.12.28 V1.0 By Aki
 from email.mime.text import MIMEText
 import requests
 import datetime
