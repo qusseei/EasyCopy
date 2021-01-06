@@ -39,8 +39,7 @@ while True:
         smtpObj = smtplib.SMTP()                    #连接到服务器
         smtpObj.connect(mail_host,25)               #登录到服务器smtpObj = smtplib.SMTP_SSL(mail_host)
         smtpObj.login(mail_user,mail_pass)          #发送
-        smtpObj.sendmail(
-            sender,receivers,message.as_string())   #退出
+        smtpObj.sendmail(sender,receivers,message.as_string())   #退出
         smtpObj.quit() 
         print(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+'  IP Address Changed, The Email Sent Successfully, And Now IP Address Is  '+theip)
     except smtplib.SMTPException as e:
