@@ -15,26 +15,26 @@ set year=%copydata:~0,4%
 set month=%copydata:~4,2%
 set day=%copydata:~6,2%
 echo %year%,%month%,%day%
-set typetime=%month:~-1%_%day%
-set typetime1=%year%-%month%-%day%
+set wxjtime=%month:~-1%_%day%
+set mylogservertime=%year%-%month%-%day%
 
 set savepath=%currentdirectory%%abbreviation%%thisday%\
 if not exist %savepath% ( md %savepath% ) else (rd /s /q %savepath% && md %savepath% )
 echo %currentdirectory%%savepath% Has Been Created
 
 xcopy %wxjpath%*.rar %savepath%JD1AWXJ\ /d /y
-xcopy %wxjpath%replays\replay%typetime%.* %savepath%JD1AWXJ\replays\ /s /e /d /y
-xcopy %wxjpath%alarms\alm%typetime%.* %savepath%JD1AWXJ\alarms\ /s /e /d /y
-xcopy %wxjpath%button\btn%typetime%.* %savepath%JD1AWXJ\button\ /s /e /d /y
-xcopy %wxjpath%errors\err%typetime%.* %savepath%JD1AWXJ\errors\ /s /e /d /y
-xcopy %wxjpath%sysinfo\sys*%typetime%.txt %savepath%JD1AWXJ\sysinfo\ /s /e /d /y
+xcopy %wxjpath%replays\replay%wxjtime%.* %savepath%JD1AWXJ\replays\ /s /e /d /y
+xcopy %wxjpath%alarms\alm%wxjtime%.* %savepath%JD1AWXJ\alarms\ /s /e /d /y
+xcopy %wxjpath%button\btn%wxjtime%.* %savepath%JD1AWXJ\button\ /s /e /d /y
+xcopy %wxjpath%errors\err%wxjtime%.* %savepath%JD1AWXJ\errors\ /s /e /d /y
+xcopy %wxjpath%sysinfo\sys*%wxjtime%.txt %savepath%JD1AWXJ\sysinfo\ /s /e /d /y
 
 echo %mylogserverpath%
 xcopy %mylogserverpath%*LOG*.rar %savepath%MYLOGSERVER\ /d /y
-xcopy %mylogserverpath%Data\*%typetime1%.* %savepath%MYLOGSERVER\Data\ /s /e /d /y
-xcopy %mylogserverpath%Log\*%typetime1%.* %savepath%MYLOGSERVER\Log\ /s /e /d /y
+xcopy %mylogserverpath%Data\*%mylogservertime%.* %savepath%MYLOGSERVER\Data\ /s /e /d /y
+xcopy %mylogserverpath%Log\*%mylogservertime%.* %savepath%MYLOGSERVER\Log\ /s /e /d /y
 
-if exist %savepath%replays\replay%typetime%.* ( echo success ) else ( echo no data) 
+if exist %savepath%JD1AWXJ\replays\replay%wxjtime%.* ( echo success ) else ( echo no data) 
 
 start winrar x -y -r- -ikbc -inul %savepath%JD1AWXJ\*MW*.rar *.* %savepath%JD1AWXJ\
 start winrar x -y -r- -ikbc -inul %savepath%MYLOGSERVER\*LOG*.rar *.* %savepath%MYLOGSERVER\
