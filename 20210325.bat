@@ -28,24 +28,24 @@ set mylogservertime=%year%-%month%-%day%
 rem 构造维修机和日志程序格式
 set savepath=%currentdirectory%%abbreviation%%thisday%\
 if not exist %savepath% ( md %savepath% ) else (rd /s /q %savepath% && md %savepath% )
-echo %currentdirectory%%savepath% Has Been Created
+echo %savepath% Has Been Created
 rem 设置并新建文件保存路径
 
-xcopy %wxjpath%*.rar %savepath%JD1AWXJ\ /d /y
-xcopy %wxjpath%replays\replay%wxjtime%.* %savepath%JD1AWXJ\replays\ /s /e /d /y
-xcopy %wxjpath%alarms\alm%wxjtime%.* %savepath%JD1AWXJ\alarms\ /s /e /d /y
-xcopy %wxjpath%button\btn%wxjtime%.* %savepath%JD1AWXJ\button\ /s /e /d /y
-xcopy %wxjpath%errors\err%wxjtime%.* %savepath%JD1AWXJ\errors\ /s /e /d /y
-xcopy %wxjpath%sysinfo\sys*%wxjtime%.txt %savepath%JD1AWXJ\sysinfo\ /s /e /d /y
+%currentdirectory%xcopy.exe %wxjpath%*.rar %savepath%JD1AWXJ\ /d /y
+%currentdirectory%xcopy.exe %wxjpath%replays\replay%wxjtime%.* %savepath%JD1AWXJ\replays\ /s /e /d /y
+%currentdirectory%xcopy.exe %wxjpath%alarms\alm%wxjtime%.* %savepath%JD1AWXJ\alarms\ /s /e /d /y
+%currentdirectory%xcopy.exe %wxjpath%button\btn%wxjtime%.* %savepath%JD1AWXJ\button\ /s /e /d /y
+%currentdirectory%xcopy.exe %wxjpath%errors\err%wxjtime%.* %savepath%JD1AWXJ\errors\ /s /e /d /y
+%currentdirectory%xcopy.exe %wxjpath%sysinfo\sys*%wxjtime%.txt %savepath%JD1AWXJ\sysinfo\ /s /e /d /y
 rem 拷贝维修机数据
 
 echo %mylogserverpath%
-xcopy %mylogserverpath%*LOG*.rar %savepath%MYLOGSERVER\ /d /y
-xcopy %mylogserverpath%Data\*%mylogservertime%.* %savepath%MYLOGSERVER\Data\ /s /e /d /y
-xcopy %mylogserverpath%Log\*%mylogservertime%.* %savepath%MYLOGSERVER\Log\ /s /e /d /y
+%currentdirectory%xcopy.exe %mylogserverpath%*LOG*.rar %savepath%MYLOGSERVER\ /d /y
+%currentdirectory%xcopy.exe %mylogserverpath%Data\*%mylogservertime%.* %savepath%MYLOGSERVER\Data\ /s /e /d /y
+%currentdirectory%xcopy.exe %mylogserverpath%Log\*%mylogservertime%.* %savepath%MYLOGSERVER\Log\ /s /e /d /y
 rem 拷贝日志数据
 
-if exist %savepath%JD1AWXJ\replays\replay%wxjtime%.* ( echo success ) else ( echo no data) 
+if exist %savepath%JD1AWXJ\replays\replay%wxjtime%.* ( echo success ) else ( echo no data)
 rem 判断是否拷贝成功
 
 start winrar x -y -r- -ikbc -inul %savepath%JD1AWXJ\*MW*.rar *.* %savepath%JD1AWXJ\
