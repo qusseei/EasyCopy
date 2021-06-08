@@ -122,6 +122,7 @@ def downlist(ftp, l0, l1):
 
 
 def everyip(ip, l0, l1, l2):
+    print(ip)
     ftp = FTP()
     ftp.connect(ip, 21)
     # ftp.login("Remote","jd1awxj")
