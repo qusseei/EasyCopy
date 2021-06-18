@@ -233,7 +233,6 @@ def newfile(path):
 nowdir = getcwd()
 x_c, jsondata, nowdir = mkpathandreadjson(nowdir)
 l0, l1, l2 = geteveryday(jsondata["starttime"], jsondata["endtime"])
-name = ""
 if jsondata["remote"] is "0":
     stationame = getstationame()
     nowdir = nowdir + "\\" + stationame
