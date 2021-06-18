@@ -244,12 +244,6 @@ if jsondata["remote"] is "0":
 elif jsondata["remote"] is "1":
     popdict(jsondata, ["starttime", "endtime", "remote"])
     copybyftp(l0, l1, l2, jsondata)
-    # system("start winrar x -y -r -ikbc -inul %s %s" %
-    #        (nowdir + r"*\JD1AWXJ\*W*.RAR", nowdir + r"\JD1AWXJ"))
-    # system("start winrar x -y -r -ikbc -inul %s %s" %
-    #        (nowdir + r"\MYLOGSERVER\*LOG0*.RAR", nowdir + r"\MYLOGSERVER"))
-    # system("start winrar x -y -r -ikbc -inul %s %s" %
-    #        (nowdir + r"\MYLOGSERVER\MYLOG*_*.RAR", nowdir + r"\MYLOGSERVER"))
     print("All data has been copied to %s " % (nowdir))
     print("All data has been copied to %s " % (nowdir))
     print("All data has been copied to %s " % (nowdir))
