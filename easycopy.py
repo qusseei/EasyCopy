@@ -3,23 +3,33 @@
 from os import path, system, getcwd, remove, makedirs, walk
 from datetime import timedelta
 from datetime import datetime
-from shutil import rmtree
 from json import load
 from ftplib import FTP
 from glob import glob
+from itertools import zip_longest
 
 
 def mkpathandreadjson(path):
     nowtime = datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S')
     makedirs(nowtime)
     if len(path) < 4:
-        data = load(open(path + "easycopy.json"))
+        try:
+            data = load(open(path + "easycopy.json"))
+        except Exception as err:
+            print(err)
+            system("pause")
+            exit()
         x_c = path + "xcopy"
         path += nowtime
         return x_c, data, path
     else:
         path += "\\"
-        data = load(open(path + "easycopy.json"))
+        try:
+            data = load(open(path + "easycopy.json"))
+        except Exception as err:
+            print(err)
+            system("pause")
+            exit()
         x_c = path + "xcopy"
         path += nowtime
         return x_c, data, path
@@ -35,11 +45,7 @@ def geteveryday(begin_date, end_date):
         date_str = begin_date.strftime("%Y-%m-%d")
         date_list.append(date_str)
         begin_date += timedelta(days=1)
-    return date_list
-
-
-def slicedate(date_list):
-    l0, l1, l2 = [[] for i in range(3)]
+        l0, l1, l2 = [[] for i in range(3)]
     for date in date_list:
         l0.append(date)
         l1.append(date.replace("-", "_"))
@@ -88,12 +94,10 @@ def copy(l0, l1, l2):
         "%s /d /y %s %s" %
         (x_c, r"E:\MYLOGSERVER\*LOG*.RAR", nowdir + r"\MYLOGSERVER\*LOG*.RAR"))
 
-    system("start winrar x -y -r -ikbc -inul %s %s" %
+    system("start winrar x -y -ikbc -inul %s %s" %
            (nowdir + r"\JD1AWXJ\*W*.RAR", nowdir + r"\JD1AWXJ"))
-    system("start winrar x -y -r -ikbc -inul %s %s" %
-           (nowdir + r"\MYLOGSERVER\*LOG0*.RAR", nowdir + r"\MYLOGSERVER"))
-    system("start winrar x -y -r -ikbc -inul %s %s" %
-           (nowdir + r"\MYLOGSERVER\MYLOG*_*.RAR", nowdir + r"\MYLOGSERVER"))
+    system("start winrar x -y -ikbc -inul %s %s" %
+           (nowdir + r"\MYLOGSERVER\*LOG*.RAR", nowdir + r"\MYLOGSERVER"))
 
 
 def popdict(dict, popkey):
@@ -106,7 +110,80 @@ def copybyftp(l0, l1, l2, args):
         everyip(args[ip], l0, l1, l2)
 
 
-def searchsoft(list):
+def everyip(ip, l0, l1, l2):
+    print(ip)
+    ftp = FTP()
+    ftp.connect(ip, 21)
+    # ftp.login("Remote","jd1awxj")
+    ftp.login("Anonymous", "jd1awxj")
+    wxjnlst = ftp.nlst("jd1awxj")
+    mylognlst = ftp.nlst("mylogserver")
+    alarmsnlst = ftp.nlst("jd1awxj/alarms")
+    buttonnlst = ftp.nlst("jd1awxj/button")
+    doginfonlst = ftp.nlst("jd1awxj/doginfo")
+    errorsnlst = ftp.nlst("jd1awxj/errors")
+    replayslst = ftp.nlst("jd1awxj/replays")
+    sysinfolst = ftp.nlst("jd1awxj/sysinfo")
+    Datanlst = ftp.nlst("mylogserver/Data")
+    Loglst = ftp.nlst("mylogserver/Log")
+
+    for ele in searchname(wxjnlst):
+        if "MW" in ele or "WX" in ele:
+            wxjsoftname = ele
+
+    ftpstationame = wxjsoftname[0:3] + "_" + ip
+    newfile(ftpstationame)
+
+    for ele in searchname(mylognlst):
+        if "LOG" in ele:
+            logsoftname = ele
+
+    q0 = nowdir + "\\" + ftpstationame + r"\JD1AWXJ" + "\\" + wxjsoftname
+    q1 = 'RETR ' + r"JD1AWXJ" + "\\" + wxjsoftname
+    q2 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER" + "\\" + logsoftname
+    q3 = 'RETR ' + r"MYLOGSERVER" + "\\" + logsoftname
+    download(ftp, q0, q1)
+    download(ftp, q2, q3)
+
+    for Data, Log, doginfo, sysinfo, alarms, button, errors, replays in zip_longest(
+            Datanlst, Loglst, doginfonlst, sysinfolst, alarmsnlst, buttonnlst,
+            errorsnlst, replayslst):
+        for s0, s1, s2 in zip(l0, l1, l2):
+            if Data:
+                if s0 in Data:
+                    wxjdownload(ftp, Data, "Data", ftpstationame)
+            if Log:
+                if s0 in Log:
+                    wxjdownload(ftp, Log, "Log", ftpstationame)
+            if doginfo:
+                if s1 in doginfo:
+                    wxjdownload(ftp, doginfo, "doginfo", ftpstationame)
+            if sysinfo:
+                if s1 in sysinfo:
+                    wxjdownload(ftp, sysinfo, "sysinfo", ftpstationame)
+            if alarms:
+                if s2 in alarms:
+                    wxjdownload(ftp, alarms, "alarms", ftpstationame)
+            if button:
+                if s2 in button:
+                    wxjdownload(ftp, button, "button", ftpstationame)
+            if errors:
+                if s2 in errors:
+                    wxjdownload(ftp, errors, "errors", ftpstationame)
+            if replays:
+                if s2 in replays:
+                    wxjdownload(ftp, replays, "replays", ftpstationame)
+
+    ftp.quit()
+    system("start winrar x -y -ikbc -inul %s %s" %
+           (nowdir + "\\" + ftpstationame + "\JD1AWXJ\*W*.RAR",
+            nowdir + "\\" + ftpstationame + "\JD1AWXJ"))
+    system("start winrar x -y -ikbc -inul %s %s" %
+           (nowdir + "\\" + ftpstationame + "\MYLOGSERVER\*LOG*.RAR",
+            nowdir + "\\" + ftpstationame + "\MYLOGSERVER"))
+
+
+def searchname(list):
     templist = []
     for ele in list:
         if ele.endswith(".RAR") or ele.endswith(".rar"):
@@ -114,117 +191,18 @@ def searchsoft(list):
     return templist
 
 
-def downlist(ftp, l0, l1):
-    for ele0, ele1 in zip(l0, l1):
-        print(ele0)
-        if (download(ftp, ele0, ele1)):
-            remove(ele0)
-
-
-def everyip(ip, l0, l1, l2):
-    print(ip)
-    ftp = FTP()
-    ftp.connect(ip, 21)
-    # ftp.login("Remote","jd1awxj")
-    ftp.login("Anonymous", "jd1awxj")
-    ftp.cwd("jd1awxj")
-    for ele in searchsoft(ftp.nlst()):
-        if "MW" in ele or "WX" in ele:
-            wxjsoftname = ele
-    ftpstationame = wxjsoftname[0:3]
-    newfile(ftpstationame)
-    ftp.cwd("..")
-    ftp.cwd("mylogserver")
-    for ele in searchsoft(ftp.nlst()):
-        if "LOG" in ele:
-            logsoftname = ele
-    ftp.cwd("..")
-    q0 = nowdir + "\\" + ftpstationame + r"\JD1AWXJ" + "\\" + wxjsoftname
-    q1 = 'RETR ' + r"JD1AWXJ" + "\\" + wxjsoftname
-    q2 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER" + "\\" + logsoftname
-    q3 = 'RETR ' + r"MYLOGSERVER" + "\\" + logsoftname
-    downlist(ftp, [q0, q2], [q1, q3])
-    for s0, s1, s2 in zip(l0, l1, l2):
-
-        r0 = nowdir + "\\" + ftpstationame + r"\JD1AWXJ\replays\replay" + s2 + ".rar"
-        r1 = 'RETR ' + r"JD1AWXJ\replays\replay" + s2 + ".rar"
-
-        r2 = nowdir + "\\" + ftpstationame + r"\JD1AWXJ\replays\replay" + s2 + ".rep"
-        r3 = 'RETR ' + r"JD1AWXJ\replays\replay" + s2 + ".rep"
-
-        r4 = nowdir + "\\" + ftpstationame + r"\JD1AWXJ\doginfo\info" + s1 + ".txt"
-        r5 = 'RETR ' + r"JD1AWXJ\doginfo\info" + s1 + ".txt"
-
-        r6 = nowdir + "\\" + ftpstationame + r"\JD1AWXJ\sysinfo\sys" + s1 + ".txt"
-        r7 = 'RETR ' + r"JD1AWXJ\sysinfo\sys" + s1 + ".txt"
-
-        r8 = nowdir + "\\" + ftpstationame + r"\JD1AWXJ\alarms\alm" + s2
-        r9 = 'RETR ' + r"JD1AWXJ\alarms\alm" + s2
-
-        r10 = nowdir + "\\" + ftpstationame + r"\JD1AWXJ\button\btn" + s2
-        r11 = 'RETR ' + r"JD1AWXJ\button\btn" + s2
-
-        r12 = nowdir + "\\" + ftpstationame + r"\JD1AWXJ\errors\err" + s2
-        r13 = 'RETR ' + r"JD1AWXJ\errors\err" + s2
-
-        r14 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Data" + "\\" + ftpstationame + "_I_A" + " " + s0 + ".rar"
-        r15 = 'RETR ' + r"MYLOGSERVER\Data" + "\\" + ftpstationame + "_I_A" + " " + s0 + ".rar"
-
-        r16 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Data" + "\\" + ftpstationame + "_II_A" + " " + s0 + ".rar"
-        r17 = 'RETR ' + r"MYLOGSERVER\Data" + "\\" + ftpstationame + "_II_A" + " " + s0 + ".rar"
-
-        r18 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Data" + "\\" + ftpstationame + "_I_B" + " " + s0 + ".rar"
-        r19 = 'RETR ' + r"MYLOGSERVER\Data" + "\\" + ftpstationame + "_I_B" + " " + s0 + ".rar"
-
-        r20 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Data" + "\\" + ftpstationame + "_II_B" + " " + s0 + ".rar"
-        r21 = 'RETR ' + r"MYLOGSERVER\Data" + "\\" + ftpstationame + "_II_B" + " " + s0 + ".rar"
-
-        r22 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Log" + "\\" + ftpstationame + "_I_A" + " " + s0 + ".rar"
-        r23 = 'RETR ' + r"MYLOGSERVER\Log" + "\\" + ftpstationame + "_I_A" + " " + s0 + ".rar"
-
-        r24 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Log" + "\\" + ftpstationame + "_II_A" + " " + s0 + ".rar"
-        r25 = 'RETR ' + r"MYLOGSERVER\Log" + "\\" + ftpstationame + "_II_A" + " " + s0 + ".rar"
-
-        r26 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Log" + "\\" + ftpstationame + "_I_B" + " " + s0 + ".rar"
-        r27 = 'RETR ' + r"MYLOGSERVER\Log" + "\\" + ftpstationame + "_I_B" + " " + s0 + ".rar"
-
-        r28 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Log" + "\\" + ftpstationame + "_II_B" + " " + s0 + ".rar"
-        r29 = 'RETR ' + r"MYLOGSERVER\Log" + "\\" + ftpstationame + "_II_B" + " " + s0 + ".rar"
-
-        r30 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Log" + "\\" + ftpstationame + "MW" + "_I_A" + " " + s0 + ".rar"
-        r31 = 'RETR ' + r"MYLOGSERVER\Log" + "\\" + ftpstationame + "MW" + "_I_A" + " " + s0 + ".rar"
-
-        r32 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Log" + "\\" + ftpstationame + "MW" + "_II_A" + " " + s0 + ".rar"
-        r33 = 'RETR ' + r"MYLOGSERVER\Log" + "\\" + ftpstationame + "MW" + "_II_A" + " " + s0 + ".rar"
-
-        r34 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Log" + "\\" + ftpstationame + "MW" + "_I_B" + " " + s0 + ".rar"
-        r35 = 'RETR ' + r"MYLOGSERVER\Log" + "\\" + ftpstationame + "MW" + "_I_B" + " " + s0 + ".rar"
-
-        r36 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Log" + "\\" + ftpstationame + "MW" + "_II_B" + " " + s0 + ".rar"
-        r37 = 'RETR ' + r"MYLOGSERVER\Log" + "\\" + ftpstationame + "MW" + "_II_B" + " " + s0 + ".rar"
-
-        r38 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\Log" + "\\" + "MyLogServer1" + " " + s0 + ".rar"
-        r39 = 'RETR ' + r"MYLOGSERVER\Log" + "\\" + "MyLogServer1" + " " + s0 + ".rar"
-
-        list0 = [
-            r0, r2, r4, r6, r8, r10, r12, r14, r16, r18, r20, r22, r24, r26,
-            r28, r30, r32, r34, r36, r38
-        ]
-        list1 = [
-            r1, r3, r5, r7, r9, r11, r13, r15, r17, r19, r21, r23, r25, r27,
-            r29, r31, r33, r35, r37, r39
-        ]
-        downlist(ftp, list0, list1)
-    ftp.quit()
-    system("start winrar x -y -r -ikbc -inul %s %s" %
-           (nowdir + "\\" + ftpstationame + r"\JD1AWXJ\*W*.RAR",
-            nowdir + "\\" + ftpstationame + r"\JD1AWXJ"))
-    system("start winrar x -y -r -ikbc -inul %s %s" %
-           (nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\*LOG0*.RAR",
-            nowdir + "\\" + ftpstationame + r"\MYLOGSERVER"))
-    system("start winrar x -y -r -ikbc -inul %s %s" %
-           (nowdir + "\\" + ftpstationame + r"\MYLOGSERVER\MYLOG*_*.RAR",
-            nowdir + "\\" + ftpstationame + r"\MYLOGSERVER"))
+def wxjdownload(ftp, file, type, stationame):
+    if type in ("Data", "Log"):
+        ra = "%s%s%s%s%s%s%s" % (nowdir, "\\", stationame, "\MYLOGSERVER\\",
+                                 type, "\\", file)
+        rb = "%s%s%s%s%s" % ('RETR', "MYLOGSERVER\\", type, "\\", file)
+        download(ftp, ra, rb)
+    elif type in ("doginfo", "sysinfo", "alarms", "button", "replays",
+                  "errors"):
+        ra = "%s%s%s%s%s%s%s" % (nowdir, "\\", stationame, "\JD1AWXJ\\", type,
+                                 "\\", file)
+        rb = "%s%s%s%s%s" % ('RETR', "JD1AWXJ\\", type, "\\", file)
+        download(ftp, ra, rb)
 
 
 def download(ftp, local_file, remote_file):
@@ -233,11 +211,12 @@ def download(ftp, local_file, remote_file):
         fp = open(local_file, 'wb')
         ftp.retrbinary(remote_file, fp.write, buf_size)
         fp.close()
-        print("success")
-        return 0
-    except Exception as err:
-        print("no such data")
+        print("success copy %s " % (remote_file))
         return 1
+    except Exception as err:
+        print(err)
+        print("failed copy %s " % (remote_file))
+        return 0
 
 
 def newfile(path):
@@ -253,23 +232,27 @@ def newfile(path):
 
 nowdir = getcwd()
 x_c, jsondata, nowdir = mkpathandreadjson(nowdir)
-date_list = geteveryday(jsondata["starttime"], jsondata["endtime"])
-l0, l1, l2 = slicedate(date_list)
-
+l0, l1, l2 = geteveryday(jsondata["starttime"], jsondata["endtime"])
+name = ""
 if jsondata["remote"] is "0":
     stationame = getstationame()
     nowdir = nowdir + "\\" + stationame
     copy(l0, l1, l2)
-    print("All right, all the data has been copied to %s " % (nowdir[0:-4]))
-    print("All right, all the data has been copied to %s " % (nowdir[0:-4]))
-    print("All right, all the data has been copied to %s " % (nowdir[0:-4]))
+    print("All data has been copied to %s " % (nowdir))
+    print("All data has been copied to %s " % (nowdir))
+    print("All data has been copied to %s " % (nowdir))
 elif jsondata["remote"] is "1":
     popdict(jsondata, ["starttime", "endtime", "remote"])
     copybyftp(l0, l1, l2, jsondata)
-    print("All right, all the data has been copied to %s " % (nowdir))
-    print("All right, all the data has been copied to %s " % (nowdir))
-    print("All right, all the data has been copied to %s " % (nowdir))
+    # system("start winrar x -y -r -ikbc -inul %s %s" %
+    #        (nowdir + r"*\JD1AWXJ\*W*.RAR", nowdir + r"\JD1AWXJ"))
+    # system("start winrar x -y -r -ikbc -inul %s %s" %
+    #        (nowdir + r"\MYLOGSERVER\*LOG0*.RAR", nowdir + r"\MYLOGSERVER"))
+    # system("start winrar x -y -r -ikbc -inul %s %s" %
+    #        (nowdir + r"\MYLOGSERVER\MYLOG*_*.RAR", nowdir + r"\MYLOGSERVER"))
+    print("All data has been copied to %s " % (nowdir))
+    print("All data has been copied to %s " % (nowdir))
+    print("All data has been copied to %s " % (nowdir))
 else:
     print("Something Wrong")
-    exit()
 system("pause")
