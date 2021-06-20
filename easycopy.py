@@ -211,7 +211,7 @@ def download(ftp, local_file, remote_file):
         fp = open(local_file, 'wb')
         ftp.retrbinary(remote_file, fp.write, buf_size)
         fp.close()
-        print("success copy %s " % (remote_file))
+        print("success copy %s " % (remote_file[4:]))
         return 1
     except Exception as err:
         print(err)
