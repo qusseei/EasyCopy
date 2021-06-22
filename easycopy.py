@@ -68,39 +68,39 @@ def getstationame():
 def copy(l0, l1, l2):
     for s0, s1, s2 in zip(l0, l1, l2):
         system("%s /s /e /d /y %s %s" %
-               (x_c, r"E:\JD1AWXJ\replays\replay" + s2 + ".*",
-                nowdir + r"\JD1AWXJ\replays\replay" + s2 + ".*"))
+               (x_c, "E:\\JD1AWXJ\\replays\\replay" + s2 + ".*",
+                nowdir + "\\JD1AWXJ\\replays\\replay" + s2 + ".*"))
         system("%s /s /e /d /y %s %s" %
-               (x_c, r"E:\JD1AWXJ\alarms\alm" + s2 + ".*",
-                nowdir + r"\JD1AWXJ\alarms\alm" + s2 + ".*"))
+               (x_c, "E:\\JD1AWXJ\\alarms\\alm" + s2 + ".*",
+                nowdir + "\\JD1AWXJ\\alarms\\alm" + s2 + ".*"))
         system("%s /s /e /d /y %s %s" %
-               (x_c, r"E:\JD1AWXJ\button\btn" + s2 + ".*",
-                nowdir + r"\JD1AWXJ\button\btn" + s2 + ".*"))
+               (x_c, "E:\\JD1AWXJ\\button\\btn" + s2 + ".*",
+                nowdir + "\\JD1AWXJ\\button\\btn" + s2 + ".*"))
         system("%s /s /e /d /y %s %s" %
-               (x_c, r"E:\JD1AWXJ\errors\err" + s2 + ".*",
-                nowdir + r"\JD1AWXJ\errors\err" + s2 + ".*"))
+               (x_c, "E:\\JD1AWXJ\\errors\\err" + s2 + ".*",
+                nowdir + "\\JD1AWXJ\\errors\\err" + s2 + ".*"))
         system("%s /s /e /d /y %s %s" %
-               (x_c, r"E:\JD1AWXJ\doginfo\info" + s1 + ".*",
-                nowdir + r"\JD1AWXJ\doginfo\info" + s1 + ".*"))
+               (x_c, "E:\\JD1AWXJ\\doginfo\\info" + s1 + ".*",
+                nowdir + "\\JD1AWXJ\\doginfo\\info" + s1 + ".*"))
         system("%s /s /e /d /y %s %s" %
-               (x_c, r"E:\JD1AWXJ\sysinfo\sys" + s1 + ".*",
-                nowdir + r"\JD1AWXJ\sysinfo\sys" + s1 + ".*"))
+               (x_c, "E:\\JD1AWXJ\\sysinfo\\sys" + s1 + ".*",
+                nowdir + "\\JD1AWXJ\\sysinfo\\sys" + s1 + ".*"))
         system("%s /s /e /d /y %s %s" %
-               (x_c, r"E:\MYLOGSERVER\Data\*" + s0 + ".*",
-                nowdir + r"\MYLOGSERVER\Data\*" + s0 + ".*"))
+               (x_c, "E:\\MYLOGSERVER\\Data\\*" + s0 + ".*",
+                nowdir + "\\MYLOGSERVER\\Data\\*" + s0 + ".*"))
         system("%s /s /e /d /y %s %s" %
-               (x_c, r"E:\MYLOGSERVER\Log\*" + s0 + ".*",
-                nowdir + r"\MYLOGSERVER\Log\*" + s0 + ".*"))
+               (x_c, "E:\\MYLOGSERVER\Log\\*" + s0 + ".*",
+                nowdir + "\\MYLOGSERVER\Log\\*" + s0 + ".*"))
     system("%s /d /y %s %s" %
-           (x_c, r"E:\JD1AWXJ\*.RAR", nowdir + r"\JD1AWXJ\*.RAR"))
+           (x_c, "E:\\JD1AWXJ\\*W*.RAR", nowdir + "\\JD1AWXJ\\*W*.RAR"))
     system(
         "%s /d /y %s %s" %
-        (x_c, r"E:\MYLOGSERVER\*LOG*.RAR", nowdir + r"\MYLOGSERVER\*LOG*.RAR"))
+        (x_c, "E:\\MYLOGSERVER\\*LOG*.RAR", nowdir + "\\MYLOGSERVER\\*LOG*.RAR"))
     #解压软件到指定目录
     system("start winrar x -y -ikbc -inul %s %s" %
-           (nowdir + r"\JD1AWXJ\*W*.RAR", nowdir + r"\JD1AWXJ"))
+           (nowdir + "\\JD1AWXJ\\*W*.RAR", nowdir + "\\JD1AWXJ"))
     system("start winrar x -y -ikbc -inul %s %s" %
-           (nowdir + r"\MYLOGSERVER\*LOG*.RAR", nowdir + r"\MYLOGSERVER"))
+           (nowdir + "\\MYLOGSERVER\\*LOG*.RAR", nowdir + "\\MYLOGSERVER"))
 
 
 #删除多余配置项，留下IP地址字典
@@ -183,11 +183,11 @@ def everyip(ip, l0, l1, l2):
     ftp.quit()
     #解压指定文件
     system("start winrar x -y -ikbc -inul %s %s" %
-           (nowdir + "\\" + ftpstationame + "\JD1AWXJ\*W*.RAR",
-            nowdir + "\\" + ftpstationame + "\JD1AWXJ"))
+           (nowdir + "\\" + ftpstationame + "\\JD1AWXJ\\*W*.RAR",
+            nowdir + "\\" + ftpstationame + "\\JD1AWXJ"))
     system("start winrar x -y -ikbc -inul %s %s" %
-           (nowdir + "\\" + ftpstationame + "\MYLOGSERVER\*LOG*.RAR",
-            nowdir + "\\" + ftpstationame + "\MYLOGSERVER"))
+           (nowdir + "\\" + ftpstationame + "\\MYLOGSERVER\\*LOG*.RAR",
+            nowdir + "\\" + ftpstationame + "\\MYLOGSERVER"))
 
 
 #远程获取站名
@@ -202,13 +202,13 @@ def searchname(list):
 #指定维修机和日志下载到不同地址
 def wxjdownload(ftp, file, type, stationame):
     if type in ("Data", "Log"):
-        ra = "%s%s%s%s%s%s%s" % (nowdir, "\\", stationame, "\MYLOGSERVER\\",
+        ra = "%s%s%s%s%s%s%s" % (nowdir, "\\", stationame, "\\MYLOGSERVER\\",
                                  type, "\\", file)
         rb = "%s%s%s%s%s" % ('RETR', "MYLOGSERVER\\", type, "\\", file)
         download(ftp, ra, rb)
     elif type in ("doginfo", "sysinfo", "alarms", "button", "replays",
                   "errors"):
-        ra = "%s%s%s%s%s%s%s" % (nowdir, "\\", stationame, "\JD1AWXJ\\", type,
+        ra = "%s%s%s%s%s%s%s" % (nowdir, "\\", stationame, "\\JD1AWXJ\\", type,
                                  "\\", file)
         rb = "%s%s%s%s%s" % ('RETR', "JD1AWXJ\\", type, "\\", file)
         download(ftp, ra, rb)
@@ -231,14 +231,14 @@ def download(ftp, local_file, remote_file):
 
 #新建指定空文件夹
 def newfile(path):
-    makedirs(nowdir + "\\" + path + r"\jd1awxj" + r"\replays")
-    makedirs(nowdir + "\\" + path + r"\jd1awxj" + r"\doginfo")
-    makedirs(nowdir + "\\" + path + r"\jd1awxj" + r"\sysinfo")
-    makedirs(nowdir + "\\" + path + r"\jd1awxj" + r"\alarms")
-    makedirs(nowdir + "\\" + path + r"\jd1awxj" + r"\button")
-    makedirs(nowdir + "\\" + path + r"\jd1awxj" + r"\errors")
-    makedirs(nowdir + "\\" + path + r"\mylogserver" + r"\Data")
-    makedirs(nowdir + "\\" + path + r"\mylogserver" + r"\Log")
+    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\replays")
+    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\doginfo")
+    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\sysinfo")
+    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\alarms")
+    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\button")
+    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\errors")
+    makedirs(nowdir + "\\" + path + "\\mylogserver" + "\\Data")
+    makedirs(nowdir + "\\" + path + "\\mylogserver" + "\\Log")
 
 
 #获取当前路径
