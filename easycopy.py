@@ -144,10 +144,10 @@ def everyip(ip, l0, l1, l2):
         if "LOG" in ele:
             logsoftname = ele
 
-    q0 = nowdir + "\\" + ftpstationame + r"\JD1AWXJ" + "\\" + wxjsoftname
-    q1 = 'RETR ' + r"JD1AWXJ" + "\\" + wxjsoftname
-    q2 = nowdir + "\\" + ftpstationame + r"\MYLOGSERVER" + "\\" + logsoftname
-    q3 = 'RETR ' + r"MYLOGSERVER" + "\\" + logsoftname
+    q0 = nowdir + "\\" + ftpstationame + "\\JD1AWXJ" + "\\" + wxjsoftname
+    q1 = 'RETR ' + "JD1AWXJ" + "\\" + wxjsoftname
+    q2 = nowdir + "\\" + ftpstationame + "\\MYLOGSERVER" + "\\" + logsoftname
+    q3 = 'RETR ' + "MYLOGSERVER" + "\\" + logsoftname
     download(ftp, q0, q1)
     download(ftp, q2, q3)
 
