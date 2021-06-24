@@ -270,28 +270,28 @@ def newfile(path):
         system("pause")
         exit()
 
+def ccopy(root, file):
+    try:
+        temp = path.join(root, file)
+        copy(temp, path.join(nowdir + root[2:], file))
+        print("SUCCESS COPY %s " % temp)
+    except Exception as err:
+        print(err)
+        system("pause")
+        exit()
+
 
 #复制维修机数据
 def copywxj(ll, l1, l2):
     for root, dirs, files in ll:
         for dir in dirs:
-            try:
-                makedirs(path.join(nowdir + root[2:], dir))
-            except Exception as err:
-                print(err)
-                system("pause")
-                exit()
+            ccopy(root,file)
         for file in files:
+            if "WX" in file or "MW" in file:
+                ccopy(root,file)
             for s1, s2 in zip(l1, l2):
                 if s1 in file or s2 in file:
-                    try:
-                        temp = path.join(root, file)
-                        copy(temp, path.join(nowdir + root[2:], file))
-                        print("SUCCESS COPY %s " % temp)
-                    except Exception as err:
-                        print(err)
-                        system("pause")
-                        exit()
+                    ccopy(root,file)
 
 
 #复制mylog数据
@@ -305,16 +305,11 @@ def copylog(ll, l0):
                 system("pause")
                 exit()
         for file in files:
+            if "LOG" in file:
+                ccopy(root,file)
             for s0 in l0:
                 if s0 in file:
-                    try:
-                        temp = path.join(root, file)
-                        copy(temp, path.join(nowdir + root[2:], file))
-                        print("SUCCESS COPY %s " % temp)
-                    except Exception as err:
-                        print(err)
-                        system("pause")
-                        exit()
+                    ccopy(root,file)
 
 
 #复制软件
