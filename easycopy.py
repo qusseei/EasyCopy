@@ -52,9 +52,15 @@ def geteveryday(begin_date, end_date):
         l1.append(date.replace("-", "_"))
     for date in l1:
         if (date[5] == "0"):
-            l2.append(date[-4:])
+            if (date[8] == "0"):
+                l2.append(date[-4:-2] + date[-1:])
+            else:
+                l2.append(date[-4:])
         else:
-            l2.append(date[-5:])
+            if (date[8] == "0"):
+                l2.append(date[-5:-2] + date[-1:])
+            else:
+                l2.append(date[-5:])
     return l0, l1, l2
 
 
@@ -93,9 +99,8 @@ def copy(l0, l1, l2):
                 nowdir + "\\MYLOGSERVER\Log\\*" + s0 + ".*"))
     system("%s /d /y %s %s" %
            (x_c, "E:\\JD1AWXJ\\*W*.RAR", nowdir + "\\JD1AWXJ\\*W*.RAR"))
-    system(
-        "%s /d /y %s %s" %
-        (x_c, "E:\\MYLOGSERVER\\*LOG*.RAR", nowdir + "\\MYLOGSERVER\\*LOG*.RAR"))
+    system("%s /d /y %s %s" % (x_c, "E:\\MYLOGSERVER\\*LOG*.RAR",
+                               nowdir + "\\MYLOGSERVER\\*LOG*.RAR"))
     #解压软件到指定目录
     system("start winrar x -y -ikbc -inul %s %s" %
            (nowdir + "\\JD1AWXJ\\*W*.RAR", nowdir + "\\JD1AWXJ"))
