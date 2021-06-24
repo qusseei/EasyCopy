@@ -27,7 +27,6 @@ def mkpathandreadjson(path):
             exit()
         x_c = path + "xcopy"
         path += nowtime
-        return x_c, data, path
     else:
         path += "\\"
         try:
@@ -39,7 +38,7 @@ def mkpathandreadjson(path):
             exit()
         x_c = path + "xcopy"
         path += nowtime
-        return x_c, data, path
+    return x_c, data, path
 
 
 #构造日期列表l0,l1,l2
@@ -53,7 +52,7 @@ def geteveryday(begindate, enddate):
         date_str = begindate.strftime("%Y-%m-%d")
         datelist.append(date_str)
         begindate += timedelta(days=1)
-        l1, l2 = [[] for i in range(2)]
+    l1, l2 = [[] for i in range(2)]
     for date in datelist:
         l1.append(date.replace("-", "_"))
     for date in l1:
@@ -73,7 +72,7 @@ def geteveryday(begindate, enddate):
 #得到本地站名
 def getstationame():
     try:
-        stationame = glob("E:\\jd1awxj\\" + "*w*.rar")[0][11:14]
+        stationame = glob("E:\\jd1awxj\\" + "*w*.RAR")[0][11:14]
     except Exception as err:
         print(err)
         print("CAN NOT FIND JA1AWXJ")
@@ -300,6 +299,7 @@ if jsondata["remote"] is "0":
     print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
 #远程拷贝日志
 elif jsondata["remote"] is "1":
+    #去掉字典多余的键值
     popdict(jsondata, ["starttime", "endtime", "remote"])
     #检查是否为空
     if jsondata:
@@ -311,6 +311,6 @@ elif jsondata["remote"] is "1":
         print("NO IP HERE,CHECK EASYCOPY.JSON")
 #异常
 else:
-    print("SOMETHING WRONG")
+    print("SOMETHING WRONG,CHECK EASYCOPY.JSON")
 #暂停
 system("pause")
