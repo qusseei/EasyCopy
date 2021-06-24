@@ -270,6 +270,7 @@ def newfile(path):
         system("pause")
         exit()
 
+
 def ccopy(root, file):
     try:
         temp = path.join(root, file)
@@ -285,13 +286,13 @@ def ccopy(root, file):
 def copywxj(ll, l1, l2):
     for root, dirs, files in ll:
         for dir in dirs:
-            ccopy(root,file)
+            ccopy(root, file)
         for file in files:
             if "WX" in file or "MW" in file:
-                ccopy(root,file)
+                ccopy(root, file)
             for s1, s2 in zip(l1, l2):
                 if s1 in file or s2 in file:
-                    ccopy(root,file)
+                    ccopy(root, file)
 
 
 #复制mylog数据
@@ -306,10 +307,10 @@ def copylog(ll, l0):
                 exit()
         for file in files:
             if "LOG" in file:
-                ccopy(root,file)
+                ccopy(root, file)
             for s0 in l0:
                 if s0 in file:
-                    ccopy(root,file)
+                    ccopy(root, file)
 
 
 #复制软件
