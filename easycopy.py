@@ -11,12 +11,18 @@ from itertools import zip_longest
 #读取配置文件并新建保存目录
 def mkpathandreadjson(path):
     nowtime = datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S')
-    makedirs(nowtime)
+    try:
+        makedirs(nowtime)
+    except Exception as err:
+        print(err)
+        system("pause")
+        exit()
     if len(path) < 4:
         try:
             data = load(open(path + "easycopy.json"))
         except Exception as err:
             print(err)
+            print("CAN NOT FIND EASYCOPY.JSON")
             system("pause")
             exit()
         x_c = path + "xcopy"
@@ -28,6 +34,7 @@ def mkpathandreadjson(path):
             data = load(open(path + "easycopy.json"))
         except Exception as err:
             print(err)
+            print("CAN NOT FIND EASYCOPY.JSON")
             system("pause")
             exit()
         x_c = path + "xcopy"
@@ -36,19 +43,18 @@ def mkpathandreadjson(path):
 
 
 #构造日期列表l0,l1,l2
-def geteveryday(begin_date, end_date):
-    date_list = []
-    begin_date = datetime.strptime(begin_date, "%Y-%m-%d")
-    end_date = datetime.strptime(end_date, "%Y-%m-%d")
-    if (begin_date > end_date):
-        begin_date, end_date = end_date, begin_date
-    while begin_date <= end_date:
-        date_str = begin_date.strftime("%Y-%m-%d")
-        date_list.append(date_str)
-        begin_date += timedelta(days=1)
-        l0, l1, l2 = [[] for i in range(3)]
-    for date in date_list:
-        l0.append(date)
+def geteveryday(begindate, enddate):
+    datelist = []
+    begindate = datetime.strptime(begindate, "%Y-%m-%d")
+    enddate = datetime.strptime(enddate, "%Y-%m-%d")
+    if (begindate > enddate):
+        begindate, enddate = enddate, begindate
+    while begindate <= enddate:
+        date_str = begindate.strftime("%Y-%m-%d")
+        datelist.append(date_str)
+        begindate += timedelta(days=1)
+        l1, l2 = [[] for i in range(2)]
+    for date in datelist:
         l1.append(date.replace("-", "_"))
     for date in l1:
         if (date[5] == "0"):
@@ -61,12 +67,18 @@ def geteveryday(begin_date, end_date):
                 l2.append(date[-5:-2] + date[-1:])
             else:
                 l2.append(date[-5:])
-    return l0, l1, l2
+    return datelist, l1, l2
 
 
 #得到本地站名
 def getstationame():
-    stationame = glob("E:\\jd1awxj\\" + "*w*.rar")[0][11:14]
+    try:
+        stationame = glob("E:\\jd1awxj\\" + "*w*.rar")[0][11:14]
+    except Exception as err:
+        print(err)
+        print("CAN NOT FIND JA1AWXJ")
+        system("pause")
+        exit()
     return stationame
 
 
@@ -122,11 +134,16 @@ def copybyftp(l0, l1, l2, args):
 
 #建立FTP连接，对比日期列表拷贝日志
 def everyip(ip, l0, l1, l2):
-    print(ip)
-    ftp = FTP()
-    ftp.connect(ip, 21)
-    # ftp.login("Remote","jd1awxj")
-    ftp.login("Anonymous", "jd1awxj")
+    try:
+        ftp = FTP()
+        ftp.connect(ip, 21)
+        # ftp.login("Remote","jd1awxj")
+        ftp.login("Anonymous", "jd1awxj")
+    except Exception as err:
+        print(err)
+        print("FTP CONNECT ERROR")
+        system("pause")
+        exit()
     wxjnlst = ftp.nlst("jd1awxj")
     mylognlst = ftp.nlst("mylogserver")
     alarmsnlst = ftp.nlst("jd1awxj/alarms")
@@ -138,13 +155,16 @@ def everyip(ip, l0, l1, l2):
     Datanlst = ftp.nlst("mylogserver/Data")
     Loglst = ftp.nlst("mylogserver/Log")
 
+    wxjsoftname = "ABCMW001.RAR"
     for ele in searchname(wxjnlst):
         if "MW" in ele or "WX" in ele:
             wxjsoftname = ele
 
     ftpstationame = wxjsoftname[0:3] + "_" + ip
+    print(ftpstationame)
     newfile(ftpstationame)
 
+    logsoftname = "ABCLOG001.RAR"
     for ele in searchname(mylognlst):
         if "LOG" in ele:
             logsoftname = ele
@@ -220,36 +240,54 @@ def wxjdownload(ftp, file, type, stationame):
 
 
 #下载数据及异常处理
-def download(ftp, local_file, remote_file):
+def download(ftp, localfile, remotefile):
     try:
         buf_size = 1024
-        fp = open(local_file, 'wb')
-        ftp.retrbinary(remote_file, fp.write, buf_size)
+        fp = open(localfile, 'wb')
+        ftp.retrbinary(remotefile, fp.write, buf_size)
         fp.close()
-        print("success copy %s " % (remote_file[4:]))
+        print("SUCCESS COPY %s " % (remotefile[4:]))
         return 1
     except Exception as err:
         print(err)
-        print("failed copy %s " % (remote_file))
+        print("FAILED COPY %s " % (remotefile))
         return 0
 
 
 #新建指定空文件夹
 def newfile(path):
-    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\replays")
-    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\doginfo")
-    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\sysinfo")
-    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\alarms")
-    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\button")
-    makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\errors")
-    makedirs(nowdir + "\\" + path + "\\mylogserver" + "\\Data")
-    makedirs(nowdir + "\\" + path + "\\mylogserver" + "\\Log")
+    try:
+        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\replays")
+        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\doginfo")
+        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\sysinfo")
+        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\alarms")
+        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\button")
+        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\errors")
+        makedirs(nowdir + "\\" + path + "\\mylogserver" + "\\Data")
+        makedirs(nowdir + "\\" + path + "\\mylogserver" + "\\Log")
+    except Exception as err:
+        print(err)
+        system("pause")
+        exit()
 
 
 #获取当前路径
 nowdir = getcwd()
 #读取配置文件并新建保存目录
 x_c, jsondata, nowdir = mkpathandreadjson(nowdir)
+#删除配置文件的空值
+for key in list(jsondata.keys()):
+    if not jsondata.get(key):
+        del jsondata[key]
+#检查配置文件是否有需要的值
+lista = ("starttime", "endtime", "remote")
+for ele in lista:
+    if ele in jsondata:
+        pass
+    else:
+        print("ERROR EASYCOPT.JSON")
+        system("pause")
+        exit()
 #构造日期列表l0,l1,l2
 l0, l1, l2 = geteveryday(jsondata["starttime"], jsondata["endtime"])
 #本地拷贝日志
@@ -257,18 +295,22 @@ if jsondata["remote"] is "0":
     stationame = getstationame()
     nowdir = nowdir + "\\" + stationame
     copy(l0, l1, l2)
-    print("All data has been copied to %s " % (nowdir))
-    print("All data has been copied to %s " % (nowdir))
-    print("All data has been copied to %s " % (nowdir))
+    print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
+    print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
+    print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
 #远程拷贝日志
 elif jsondata["remote"] is "1":
     popdict(jsondata, ["starttime", "endtime", "remote"])
-    copybyftp(l0, l1, l2, jsondata)
-    print("All data has been copied to %s " % (nowdir))
-    print("All data has been copied to %s " % (nowdir))
-    print("All data has been copied to %s " % (nowdir))
+    #检查是否为空
+    if jsondata:
+        copybyftp(l0, l1, l2, jsondata)
+        print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
+        print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
+        print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
+    else:
+        print("NO IP HERE,CHECK EASYCOPY.JSON")
 #异常
 else:
-    print("Something Wrong")
+    print("SOMETHING WRONG")
 #暂停
 system("pause")
