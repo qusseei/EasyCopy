@@ -1,11 +1,12 @@
 #!/bin/python
 # coding=utf-8
-from os import system, getcwd, makedirs
+from os import system, getcwd, makedirs, walk, path
 from datetime import datetime, timedelta
 from json import load
 from ftplib import FTP
 from glob import glob
 from itertools import zip_longest
+from shutil import copy
 
 
 #读取配置文件并新建保存目录
@@ -82,7 +83,7 @@ def getstationame():
 
 
 #拷贝本地日志
-def copy(l0, l1, l2):
+def copybyxcopy(l0, l1, l2):
     for s0, s1, s2 in zip(l0, l1, l2):
         system("%s /s /e /d /y %s %s" %
                (x_c, "E:\\JD1AWXJ\\replays\\replay" + s2 + ".*",
@@ -270,6 +271,65 @@ def newfile(path):
         exit()
 
 
+#复制维修机数据
+def copywxj(ll, l1, l2):
+    for root, dirs, files in ll:
+        for dir in dirs:
+            try:
+                makedirs(path.join(nowdir + root[2:], dir))
+            except Exception as err:
+                print(err)
+                system("pause")
+                exit()
+        for file in files:
+            for s1, s2 in zip(l1, l2):
+                if s1 in file or s2 in file:
+                    try:
+                        temp = path.join(root, file)
+                        copy(temp, path.join(nowdir + root[2:], file))
+                        print("SUCCESS COPY %s " % temp)
+                    except Exception as err:
+                        print(err)
+                        system("pause")
+                        exit()
+
+
+#复制mylog数据
+def copylog(ll, l0):
+    for root, dirs, files in ll:
+        for dir in dirs:
+            try:
+                makedirs(path.join(nowdir + root[2:], dir))
+            except Exception as err:
+                print(err)
+                system("pause")
+                exit()
+        for file in files:
+            for s0 in l0:
+                if s0 in file:
+                    try:
+                        temp = path.join(root, file)
+                        copy(temp, path.join(nowdir + root[2:], file))
+                        print("SUCCESS COPY %s " % temp)
+                    except Exception as err:
+                        print(err)
+                        system("pause")
+                        exit()
+
+
+#复制软件
+def copysoft():
+    system("%s /d /y %s %s" %
+           (x_c, "E:\\JD1AWXJ\\*W*.RAR", nowdir + "\\JD1AWXJ\\*W*.RAR"))
+    system("%s /d /y %s %s" % (x_c, "E:\\MYLOGSERVER\\*LOG*.RAR",
+                               nowdir + "\\MYLOGSERVER\\*LOG*.RAR"))
+    #解压软件到指定目录
+    system("start winrar x -y -ikbc -inul %s %s" %
+           (nowdir + "\\JD1AWXJ\\*W*.RAR", nowdir + "\\JD1AWXJ"))
+    system("start winrar x -y -ikbc -inul %s %s" %
+           (nowdir + "\\MYLOGSERVER\\*LOG*.RAR", nowdir + "\\MYLOGSERVER"))
+
+
 #获取当前路径
 nowdir = getcwd()
 #读取配置文件并新建保存目录
@@ -293,7 +353,10 @@ l0, l1, l2 = geteveryday(jsondata["starttime"], jsondata["endtime"])
 if jsondata["remote"] is "0":
     stationame = getstationame()
     nowdir = nowdir + "\\" + stationame
-    copy(l0, l1, l2)
+    copywxj(walk("e:\\jd1awxj"), l1, l2)
+    copylog(walk("e:\\mylogserver"), l0)
+    copysoft()
+    # copy(l0, l1, l2)
     print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
     print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
     print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
