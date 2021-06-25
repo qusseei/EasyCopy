@@ -90,7 +90,8 @@ def copywxj(ll, l1, l2):
                 if s1 in file or s2 in file:
                     ccopy(root, file)
         for file in files:
-            if ("RAR" in file or "rar" in file) and ("WX" in file or "MW" in file):
+            if ("RAR" in file or "rar" in file) and ("WX" in file
+                                                     or "MW" in file):
                 ccopy(root, file)
                 break
 
@@ -110,7 +111,8 @@ def copylog(ll, l0):
                 if s0 in file:
                     ccopy(root, file)
         for file in files:
-            if ("RAR" in file or "rar" in file) and ("MyLogServer_" in file or "LOG" in file):
+            if ("RAR" in file or "rar" in file) and ("MyLogServer_" in file
+                                                     or "LOG" in file):
                 ccopy(root, file)
                 break
 
@@ -240,8 +242,6 @@ def searchname(list):
         ele = ele.upper()
         if ele.endswith(".RAR"):
             templist.append(ele)
-    print(templist)
-    
     return templist
 
 
