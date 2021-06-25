@@ -12,15 +12,10 @@ from shutil import copy
 #读取配置文件并新建保存目录
 def mkpathandreadjson(path):
     nowtime = datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S')
-    try:
-        makedirs(nowtime)
-    except Exception as err:
-        print(err)
-        system("pause")
-        exit()
+
     if len(path) < 4:
         try:
-            data = load(open(path + "easycopy.json"))
+            jsondata = load(open(path + "easycopy.json"))
         except Exception as err:
             print(err)
             print("CAN NOT FIND EASYCOPY.JSON")
@@ -31,7 +26,7 @@ def mkpathandreadjson(path):
     else:
         path += "\\"
         try:
-            data = load(open(path + "easycopy.json"))
+            jsondata = load(open(path + "easycopy.json"))
         except Exception as err:
             print(err)
             print("CAN NOT FIND EASYCOPY.JSON")
@@ -39,14 +34,12 @@ def mkpathandreadjson(path):
             exit()
         x_c = path + "xcopy"
         path += nowtime
-    return x_c, data, path
+    return x_c, jsondata, path
 
 
 #构造日期列表l0,l1,l2
 def geteveryday(begindate, enddate):
     datelist = []
-    begindate = datetime.strptime(begindate, "%Y-%m-%d")
-    enddate = datetime.strptime(enddate, "%Y-%m-%d")
     if (begindate > enddate):
         begindate, enddate = enddate, begindate
     while begindate <= enddate:
@@ -82,37 +75,60 @@ def getstationame():
     return stationame
 
 
-#拷贝本地日志
-def copybyxcopy(l0, l1, l2):
-    for s0, s1, s2 in zip(l0, l1, l2):
-        system("%s /s /e /d /y %s %s" %
-               (x_c, "E:\\JD1AWXJ\\replays\\replay" + s2 + ".*",
-                nowdir + "\\JD1AWXJ\\replays\\replay" + s2 + ".*"))
-        system("%s /s /e /d /y %s %s" %
-               (x_c, "E:\\JD1AWXJ\\alarms\\alm" + s2 + ".*",
-                nowdir + "\\JD1AWXJ\\alarms\\alm" + s2 + ".*"))
-        system("%s /s /e /d /y %s %s" %
-               (x_c, "E:\\JD1AWXJ\\button\\btn" + s2 + ".*",
-                nowdir + "\\JD1AWXJ\\button\\btn" + s2 + ".*"))
-        system("%s /s /e /d /y %s %s" %
-               (x_c, "E:\\JD1AWXJ\\errors\\err" + s2 + ".*",
-                nowdir + "\\JD1AWXJ\\errors\\err" + s2 + ".*"))
-        system("%s /s /e /d /y %s %s" %
-               (x_c, "E:\\JD1AWXJ\\doginfo\\info" + s1 + ".*",
-                nowdir + "\\JD1AWXJ\\doginfo\\info" + s1 + ".*"))
-        system("%s /s /e /d /y %s %s" %
-               (x_c, "E:\\JD1AWXJ\\sysinfo\\sys" + s1 + ".*",
-                nowdir + "\\JD1AWXJ\\sysinfo\\sys" + s1 + ".*"))
-        system("%s /s /e /d /y %s %s" %
-               (x_c, "E:\\MYLOGSERVER\\Data\\*" + s0 + ".*",
-                nowdir + "\\MYLOGSERVER\\Data\\*" + s0 + ".*"))
-        system("%s /s /e /d /y %s %s" %
-               (x_c, "E:\\MYLOGSERVER\Log\\*" + s0 + ".*",
-                nowdir + "\\MYLOGSERVER\Log\\*" + s0 + ".*"))
-    system("%s /d /y %s %s" %
-           (x_c, "E:\\JD1AWXJ\\*W*.RAR", nowdir + "\\JD1AWXJ\\*W*.RAR"))
-    system("%s /d /y %s %s" % (x_c, "E:\\MYLOGSERVER\\*LOG*.RAR",
-                               nowdir + "\\MYLOGSERVER\\*LOG*.RAR"))
+#复制维修机数据
+def copywxj(ll, l1, l2):
+    for root, dirs, files in ll:
+        for dir in dirs:
+            try:
+                makedirs(path.join(nowdir + root[2:], dir))
+            except Exception as err:
+                print(err)
+                system("pause")
+                exit()
+        for file in files:
+            for s1, s2 in zip(l1, l2):
+                if s1 in file or s2 in file:
+                    ccopy(root, file)
+        for file in files:
+            if ("RAR" in file or "rar" in file) and ("WX" in file or "MW" in file):
+                ccopy(root, file)
+                break
+
+
+#复制mylog数据
+def copylog(ll, l0):
+    for root, dirs, files in ll:
+        for dir in dirs:
+            try:
+                makedirs(path.join(nowdir + root[2:], dir))
+            except Exception as err:
+                print(err)
+                system("pause")
+                exit()
+        for file in files:
+            for s0 in l0:
+                if s0 in file:
+                    ccopy(root, file)
+        for file in files:
+            if ("RAR" in file or "rar" in file) and ("MyLogServer_" in file or "LOG" in file):
+                ccopy(root, file)
+                break
+
+
+#复制数据以及异常处理
+def ccopy(root, file):
+    try:
+        temp = path.join(root, file)
+        copy(temp, path.join(nowdir + root[2:], file))
+        print("SUCCESS COPY %s " % temp)
+    except Exception as err:
+        print(err)
+        print("FAILED COPY %s " % temp)
+        system("pause")
+        exit()
+
+
+def unzip():
     #解压软件到指定目录
     system("start winrar x -y -ikbc -inul %s %s" %
            (nowdir + "\\JD1AWXJ\\*W*.RAR", nowdir + "\\JD1AWXJ"))
@@ -151,14 +167,15 @@ def everyip(ip, l0, l1, l2):
     doginfonlst = ftp.nlst("jd1awxj/doginfo")
     errorsnlst = ftp.nlst("jd1awxj/errors")
     replayslst = ftp.nlst("jd1awxj/replays")
-    sysinfolst = ftp.nlst("jd1awxj/sysinfo")
+    sysinfonlst = ftp.nlst("jd1awxj/sysinfo")
     Datanlst = ftp.nlst("mylogserver/Data")
-    Loglst = ftp.nlst("mylogserver/Log")
+    Lognlst = ftp.nlst("mylogserver/Log")
 
     wxjsoftname = "ABCMW001.RAR"
     for ele in searchname(wxjnlst):
         if "MW" in ele or "WX" in ele:
             wxjsoftname = ele
+            break
 
     ftpstationame = wxjsoftname[0:3] + "_" + ip
     print(ftpstationame)
@@ -168,6 +185,7 @@ def everyip(ip, l0, l1, l2):
     for ele in searchname(mylognlst):
         if "LOG" in ele:
             logsoftname = ele
+            break
 
     q0 = nowdir + "\\" + ftpstationame + "\\JD1AWXJ" + "\\" + wxjsoftname
     q1 = 'RETR ' + "JD1AWXJ" + "\\" + wxjsoftname
@@ -177,8 +195,8 @@ def everyip(ip, l0, l1, l2):
     download(ftp, q2, q3)
 
     for Data, Log, doginfo, sysinfo, alarms, button, errors, replays in zip_longest(
-            Datanlst, Loglst, doginfonlst, sysinfolst, alarmsnlst, buttonnlst,
-            errorsnlst, replayslst):
+            Datanlst, Lognlst, doginfonlst, sysinfonlst, alarmsnlst,
+            buttonnlst, errorsnlst, replayslst):
         for s0, s1, s2 in zip(l0, l1, l2):
             if Data:
                 if s0 in Data:
@@ -219,8 +237,11 @@ def everyip(ip, l0, l1, l2):
 def searchname(list):
     templist = []
     for ele in list:
-        if ele.endswith(".RAR") or ele.endswith(".rar"):
+        ele = ele.upper()
+        if ele.endswith(".RAR"):
             templist.append(ele)
+    print(templist)
+    
     return templist
 
 
@@ -246,11 +267,11 @@ def download(ftp, localfile, remotefile):
         fp = open(localfile, 'wb')
         ftp.retrbinary(remotefile, fp.write, buf_size)
         fp.close()
-        print("SUCCESS COPY %s " % (remotefile[4:]))
+        print("SUCCESS DOWNLOAD %s " % (remotefile[4:]))
         return 1
     except Exception as err:
         print(err)
-        print("FAILED COPY %s " % (remotefile))
+        print("FAILED DOWNLOAD %s " % (remotefile))
         return 0
 
 
@@ -271,105 +292,95 @@ def newfile(path):
         exit()
 
 
-def ccopy(root, file):
+#判断ipv4地址是否合法
+def is_ipv4(ip: str) -> bool:
+    return True if [1] * 4 == [
+        x.isdigit() and 0 <= int(x) <= 255 for x in ip.split(".")
+    ] else False
+
+
+#检查easycopy.json各项值的正确性，返回日期，以及是否远程
+def checkjson(jsondata):
+    #删除空值
+    for key in list(jsondata.keys()):
+        if not jsondata.get(key):
+            del jsondata[key]
+
+    #检查各项值是否合理
     try:
-        temp = path.join(root, file)
-        copy(temp, path.join(nowdir + root[2:], file))
-        print("SUCCESS COPY %s " % temp)
+        begindate = datetime.strptime(jsondata["starttime"], "%Y-%m-%d")
+        enddate = datetime.strptime(jsondata["endtime"], "%Y-%m-%d")
+        if jsondata["remote"] in ("0", "1"):
+            pass
+        else:
+            print("ERROR EASYCOPT.JSON STARTTIME,ENDTIME,REMOTE")
+            system("pause")
+            exit()
     except Exception as err:
         print(err)
+        print("ERROR EASYCOPT.JSON STARTTIME,ENDTIME,REMOTE")
         system("pause")
         exit()
 
-
-#复制维修机数据
-def copywxj(ll, l1, l2):
-    for root, dirs, files in ll:
-        for dir in dirs:
-            ccopy(root, file)
-        for file in files:
-            if "WX" in file or "MW" in file:
-                ccopy(root, file)
-            for s1, s2 in zip(l1, l2):
-                if s1 in file or s2 in file:
-                    ccopy(root, file)
-
-
-#复制mylog数据
-def copylog(ll, l0):
-    for root, dirs, files in ll:
-        for dir in dirs:
-            try:
-                makedirs(path.join(nowdir + root[2:], dir))
-            except Exception as err:
-                print(err)
-                system("pause")
-                exit()
-        for file in files:
-            if "LOG" in file:
-                ccopy(root, file)
-            for s0 in l0:
-                if s0 in file:
-                    ccopy(root, file)
-
-
-#复制软件
-def copysoft():
-    system("%s /d /y %s %s" %
-           (x_c, "E:\\JD1AWXJ\\*W*.RAR", nowdir + "\\JD1AWXJ\\*W*.RAR"))
-    system("%s /d /y %s %s" % (x_c, "E:\\MYLOGSERVER\\*LOG*.RAR",
-                               nowdir + "\\MYLOGSERVER\\*LOG*.RAR"))
-    #解压软件到指定目录
-    system("start winrar x -y -ikbc -inul %s %s" %
-           (nowdir + "\\JD1AWXJ\\*W*.RAR", nowdir + "\\JD1AWXJ"))
-    system("start winrar x -y -ikbc -inul %s %s" %
-           (nowdir + "\\MYLOGSERVER\\*LOG*.RAR", nowdir + "\\MYLOGSERVER"))
-
-
-#获取当前路径
-nowdir = getcwd()
-#读取配置文件并新建保存目录
-x_c, jsondata, nowdir = mkpathandreadjson(nowdir)
-#删除配置文件的空值
-for key in list(jsondata.keys()):
-    if not jsondata.get(key):
-        del jsondata[key]
-#检查配置文件是否有需要的值
-lista = ("starttime", "endtime", "remote")
-for ele in lista:
-    if ele in jsondata:
-        pass
+    #得到IP字典并检查是否为空，不为空检查IP地址的正确性
+    if jsondata["remote"] is "1":
+        remoteornot = True
+        popdict(jsondata, ["starttime", "endtime", "remote"])
+        if not jsondata:
+            for ele in jsondata:
+                if not is_ipv4(ele):
+                    print("ERROR EASYCOPT.JSON IP")
+                    system("pause")
+                    exit()
+            print("ERROR EASYCOPT.JSON IP")
+            system("pause")
+            exit()
     else:
-        print("ERROR EASYCOPT.JSON")
-        system("pause")
-        exit()
+        remoteornot = False
+    return begindate, enddate, remoteornot
+
+
+#获取当前程序路径
+nowdir = getcwd()
+
+#读取easycopy.json并新建日志保存目录
+x_c, jsondata, nowdir = mkpathandreadjson(nowdir)
+
+#检查easycopy.json各项值的正确性,返回日期，以及是否远程
+begindate, enddate, remoteornot = checkjson(jsondata)
+
+#新建保存目录
+try:
+    makedirs(nowdir)
+except Exception as err:
+    print(err)
+    print("CAN NOT NEW DIRECTORY")
+    system("pause")
+    exit()
+
 #构造日期列表l0,l1,l2
-l0, l1, l2 = geteveryday(jsondata["starttime"], jsondata["endtime"])
-#本地拷贝日志
-if jsondata["remote"] is "0":
-    stationame = getstationame()
-    nowdir = nowdir + "\\" + stationame
-    copywxj(walk("e:\\jd1awxj"), l1, l2)
-    copylog(walk("e:\\mylogserver"), l0)
-    copysoft()
-    # copy(l0, l1, l2)
-    print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
-    print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
-    print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
+l0, l1, l2 = geteveryday(begindate, enddate)
+
 #远程拷贝日志
-elif jsondata["remote"] is "1":
-    #去掉字典多余的键值
-    popdict(jsondata, ["starttime", "endtime", "remote"])
+if remoteornot:
     #检查是否为空
     if jsondata:
         copybyftp(l0, l1, l2, jsondata)
         print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
         print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
         print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
-    else:
-        print("NO IP HERE,CHECK EASYCOPY.JSON")
-#异常
+
+#本地拷贝日志
 else:
-    print("SOMETHING WRONG,CHECK EASYCOPY.JSON")
+    stationame = getstationame()
+    nowdir = nowdir + "\\" + stationame
+    copywxj(walk("e:\\jd1awxj"), l1, l2)
+    copylog(walk("e:\\mylogserver"), l0)
+    unzip()
+    print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
+    print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
+    print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
+
 #暂停
 system("pause")
+exit()
