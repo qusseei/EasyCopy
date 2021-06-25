@@ -366,9 +366,9 @@ if remoteornot:
     #检查是否为空
     if jsondata:
         copybyftp(l0, l1, l2, jsondata)
-        print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
-        print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
-        print("All DATA HAS BEEN COPIED TO %s " % (nowdir))
+        print("All DATA HAS BEEN DOWNLOADED TO %s " % (nowdir))
+        print("All DATA HAS BEEN DOWNLOADED TO %s " % (nowdir))
+        print("All DATA HAS BEEN DOWNLOADED TO %s " % (nowdir))
 
 #本地拷贝日志
 else:
