@@ -250,13 +250,13 @@ def wxjdownload(ftp, file, type, stationame):
     if type in ("Data", "Log"):
         ra = "%s%s%s%s%s%s%s" % (nowdir, "\\", stationame, "\\MYLOGSERVER\\",
                                  type, "\\", file)
-        rb = "%s%s%s%s%s" % ('RETR', "MYLOGSERVER\\", type, "\\", file)
+        rb = "%s%s%s%s%s" % ('RETR ', "MYLOGSERVER\\", type, "\\", file)
         download(ftp, ra, rb)
     elif type in ("doginfo", "sysinfo", "alarms", "button", "replays",
                   "errors"):
         ra = "%s%s%s%s%s%s%s" % (nowdir, "\\", stationame, "\\JD1AWXJ\\", type,
                                  "\\", file)
-        rb = "%s%s%s%s%s" % ('RETR', "JD1AWXJ\\", type, "\\", file)
+        rb = "%s%s%s%s%s" % ('RETR ', "JD1AWXJ\\", type, "\\", file)
         download(ftp, ra, rb)
 
 
