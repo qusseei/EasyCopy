@@ -1,5 +1,5 @@
 #!/bin/python
-# coding=utf-8
+# -*- coding: utf-8 -*-
 from os import system, getcwd, makedirs, walk, path
 from datetime import datetime, timedelta
 from json import load
@@ -10,31 +10,17 @@ from shutil import copy
 
 
 #读取配置文件并新建保存目录
-def mkpathandreadjson(path):
+def mkpathandreadjson(newpath):
     nowtime = datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S')
-
-    if len(path) < 4:
-        try:
-            jsondata = load(open(path + "easycopy.json"))
-        except Exception as err:
-            print(err)
-            print("CAN NOT FIND EASYCOPY.JSON")
-            system("pause")
-            exit()
-        x_c = path + "xcopy"
-        path += nowtime
-    else:
-        path += "\\"
-        try:
-            jsondata = load(open(path + "easycopy.json"))
-        except Exception as err:
-            print(err)
-            print("CAN NOT FIND EASYCOPY.JSON")
-            system("pause")
-            exit()
-        x_c = path + "xcopy"
-        path += nowtime
-    return x_c, jsondata, path
+    try:
+        jsondata = load(open(path.join(newpath, "easycopy.json")))
+        newpath = path.join(newpath, nowtime)
+    except Exception as err:
+        print(err)
+        print("CAN NOT FIND EASYCOPY.JSON")
+        system("pause")
+        exit()
+    return jsondata, newpath
 
 
 #构造日期列表l0,l1,l2
@@ -66,7 +52,7 @@ def geteveryday(begindate, enddate):
 #得到本地站名
 def getstationame():
     try:
-        stationame = glob("E:\\jd1awxj\\" + "*w*.RAR")[0][11:14]
+        stationame = glob(path.join("E:\\jd1awxj", "*w*.RAR"))[0][11:14]
     except Exception as err:
         print(err)
         print("CAN NOT FIND JA1AWXJ")
@@ -132,10 +118,10 @@ def ccopy(root, file):
 
 def unzip():
     #解压软件到指定目录
-    system("start winrar x -y -ikbc -inul %s %s" %
-           (nowdir + "\\JD1AWXJ\\*W*.RAR", nowdir + "\\JD1AWXJ"))
-    system("start winrar x -y -ikbc -inul %s %s" %
-           (nowdir + "\\MYLOGSERVER\\*LOG*.RAR", nowdir + "\\MYLOGSERVER"))
+    system("start winrar x -y -ikbc -inul %s %s" % (path.join(
+        nowdir, "JD1AWXJ", "*W*.RAR"), path.join(nowdir, "JD1AWXJ")))
+    system("start winrar x -y -ikbc -inul %s %s" % (path.join(
+        nowdir, "MYLOGSERVER", "*LOG*.RAR"), path.join(nowdir, "MYLOGSERVER")))
 
 
 #删除多余配置项，留下IP地址字典
@@ -189,10 +175,10 @@ def everyip(ip, l0, l1, l2):
             logsoftname = ele
             break
 
-    q0 = nowdir + "\\" + ftpstationame + "\\JD1AWXJ" + "\\" + wxjsoftname
-    q1 = 'RETR ' + "JD1AWXJ" + "\\" + wxjsoftname
-    q2 = nowdir + "\\" + ftpstationame + "\\MYLOGSERVER" + "\\" + logsoftname
-    q3 = 'RETR ' + "MYLOGSERVER" + "\\" + logsoftname
+    q0 = path.join(nowdir, ftpstationame, "JD1AWXJ", wxjsoftname)
+    q1 = 'RETR ' + path.join("JD1AWXJ", wxjsoftname)
+    q2 = path.join(nowdir, ftpstationame, "MYLOGSERVER", logsoftname)
+    q3 = 'RETR ' + path.join("MYLOGSERVER", logsoftname)
     download(ftp, q0, q1)
     download(ftp, q2, q3)
 
@@ -228,11 +214,11 @@ def everyip(ip, l0, l1, l2):
     ftp.quit()
     #解压指定文件
     system("start winrar x -y -ikbc -inul %s %s" %
-           (nowdir + "\\" + ftpstationame + "\\JD1AWXJ\\*W*.RAR",
-            nowdir + "\\" + ftpstationame + "\\JD1AWXJ"))
+           (path.join(nowdir, ftpstationame, "JD1AWXJ",
+                      "*W*.RAR"), path.join(nowdir, ftpstationame, "JD1AWXJ")))
     system("start winrar x -y -ikbc -inul %s %s" %
-           (nowdir + "\\" + ftpstationame + "\\MYLOGSERVER\\*LOG*.RAR",
-            nowdir + "\\" + ftpstationame + "\\MYLOGSERVER"))
+           (path.join(nowdir, ftpstationame, "MYLOGSERVER", "*LOG*.RAR"),
+            path.join(nowdir, ftpstationame, "MYLOGSERVER")))
 
 
 #远程获取站名
@@ -248,15 +234,13 @@ def searchname(list):
 #指定维修机和日志下载到不同地址
 def wxjdownload(ftp, file, type, stationame):
     if type in ("Data", "Log"):
-        ra = "%s%s%s%s%s%s%s" % (nowdir, "\\", stationame, "\\MYLOGSERVER\\",
-                                 type, "\\", file)
-        rb = "%s%s%s%s%s" % ('RETR ', "MYLOGSERVER\\", type, "\\", file)
+        ra = path.join(nowdir, stationame, "MYLOGSERVER", type, file)
+        rb = 'RETR ' + path.join("MYLOGSERVER\\", type, file)
         download(ftp, ra, rb)
     elif type in ("doginfo", "sysinfo", "alarms", "button", "replays",
                   "errors"):
-        ra = "%s%s%s%s%s%s%s" % (nowdir, "\\", stationame, "\\JD1AWXJ\\", type,
-                                 "\\", file)
-        rb = "%s%s%s%s%s" % ('RETR ', "JD1AWXJ\\", type, "\\", file)
+        ra = path.join(nowdir, stationame, "JD1AWXJ", type, file)
+        rb = 'RETR ' + path.join("JD1AWXJ\\", type, file)
         download(ftp, ra, rb)
 
 
@@ -276,16 +260,16 @@ def download(ftp, localfile, remotefile):
 
 
 #新建指定空文件夹
-def newfile(path):
+def newfile(newpath):
     try:
-        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\replays")
-        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\doginfo")
-        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\sysinfo")
-        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\alarms")
-        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\button")
-        makedirs(nowdir + "\\" + path + "\\jd1awxj" + "\\errors")
-        makedirs(nowdir + "\\" + path + "\\mylogserver" + "\\Data")
-        makedirs(nowdir + "\\" + path + "\\mylogserver" + "\\Log")
+        makedirs(path.join(nowdir, newpath, "jd1awxj", "replays"))
+        makedirs(path.join(nowdir, newpath, "jd1awxj", "doginfo"))
+        makedirs(path.join(nowdir, newpath, "jd1awxj", "sysinfo"))
+        makedirs(path.join(nowdir, newpath, "jd1awxj", "alarms"))
+        makedirs(path.join(nowdir, newpath, "jd1awxj", "button"))
+        makedirs(path.join(nowdir, newpath, "jd1awxj", "errors"))
+        makedirs(path.join(nowdir, newpath, "mylogserver", "Data"))
+        makedirs(path.join(nowdir, newpath, "mylogserver", "Log"))
     except Exception as err:
         print(err)
         system("pause")
@@ -344,7 +328,7 @@ def checkjson(jsondata):
 nowdir = getcwd()
 
 #读取easycopy.json并新建日志保存目录
-x_c, jsondata, nowdir = mkpathandreadjson(nowdir)
+jsondata, nowdir = mkpathandreadjson(nowdir)
 
 #检查easycopy.json各项值的正确性,返回日期，以及是否远程
 begindate, enddate, remoteornot = checkjson(jsondata)
@@ -373,7 +357,7 @@ if remoteornot:
 #本地拷贝日志
 else:
     stationame = getstationame()
-    nowdir = nowdir + "\\" + stationame
+    nowdir = path.join(nowdir, stationame)
     copywxj(walk("e:\\jd1awxj"), l1, l2)
     copylog(walk("e:\\mylogserver"), l0)
     unzip()
