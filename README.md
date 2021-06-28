@@ -1,5 +1,4 @@
 # EasyCopy V1.2 20210628
-# easycopy.json 
 1、拷贝easycopy.exe、easycopy.json、readme.txt到U盘任一纯英文目录下（比如F:\），首先依照以下几点配置easycopy.json，右键记事本打开。
 2、starttime：需要拷贝的起始日期（包含此日期）、格式必须为：xxxx-xx-xx，例如：2021-03-05
 3、endtime：需要拷贝的终止日期（包含此日期）、格式必须为：xxxx-xx-xx，例如：2021-04-05
