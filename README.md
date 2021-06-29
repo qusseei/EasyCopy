@@ -1,7 +1,7 @@
 ## EasyCopy是什么?
 一个简单好用的拷贝维修机日志的工具
 ## EasyCopy如何使用呢?
-* 将文件`easycopy.exe`、`easycopy.json`放到任意一个纯英文目录下
+* 将文件`easycopy.exe`、`easycopy.json`放到任意相同目录下
 * 打开`easycopy.json`，设置`starttime`和`endtime`，日期格式遵循：`XXXX-XX-XX`，例如 `2021-03-01`
 * `remote`：此值为`0`时，拷贝本地计算机维修机和日志数据；此值为`1`时，开启FTP远程下载功能
 * IP列表：`remote为1时`，此项设置才有作用。命名可以为`ip0、ip1、ip2、ip3`等等，依照地铁项目IP分配表依次添加各站维修机IP
