@@ -15,7 +15,7 @@ class MUJson:
     def __init__(self):
         self.mudir = getcwd()
         self.mudata = {}
-        self.muremote = True
+        self.muremote = "0"
         self.mula, self.mulb, self.mulc = [[] for i in range(3)]
 
     def mujson(self):
@@ -34,7 +34,7 @@ class MUJson:
         try:
             begindate = datetime.strptime(self.mudata["starttime"], "%Y-%m-%d")
             enddate = datetime.strptime(self.mudata["endtime"], "%Y-%m-%d")
-            if self.mudata["remote"] in ("0", "1"):
+            if self.mudata["remote"] in ("0", "1", "2"):
                 pass
             else:
                 print("ERROR EASYCOPT.JSON STARTTIME,ENDTIME,REMOTE")
@@ -45,8 +45,9 @@ class MUJson:
             print("ERROR EASYCOPT.JSON STARTTIME,ENDTIME,REMOTE")
             system("pause")
             exit()
+        #仅远程下载
         if self.mudata["remote"] is "1":
-            self.muremote = True
+            self.muremote = "1"
             #删除对应的键值对
             for k in ["starttime", "endtime", "remote"]:
                 self.mudata.pop(k)
@@ -59,8 +60,24 @@ class MUJson:
                 print("ERROR EASYCOPT.JSON IP")
                 system("pause")
                 exit()
+        #远程下载和本地复制
+        elif self.mudata["remote"] is "2":
+            self.muremote = "2"
+            #删除对应的键值对
+            for k in ["starttime", "endtime", "remote"]:
+                self.mudata.pop(k)
+            if not self.mudata:
+                for ele in self.mudata:
+                    if not self.__is_ipv4(ele):
+                        print("ERROR EASYCOPT.JSON IP")
+                        system("pause")
+                        exit()
+                print("ERROR EASYCOPT.JSON IP")
+                system("pause")
+                exit()
+        #仅本地复制
         else:
-            self.muremote = False
+            self.muremote = "0"
         self.__geteveryday(begindate, enddate)
 
     #读取easycopy.py，更新mudir的值
@@ -358,16 +375,20 @@ class MUFtp:
 Mujson = MUJson()
 Mujson.mujson()
 
-#判断是否需要远程
-if Mujson.muremote:
-    #MUFtp类实例化并调用函数
-    Muftp = MUFtp(Mujson.mudir, Mujson.mudata, Mujson.mula, Mujson.mulb,
-                  Mujson.mulc)
-    Muftp.muftp()
-
+#MUFtp类实例化并调用函数
+Muftp = MUFtp(Mujson.mudir, Mujson.mudata, Mujson.mula, Mujson.mulb,
+              Mujson.mulc)
 #MUCopy类实例化并调用函数
 Mucopy = MUCopy(Mujson.mudir, Mujson.mula, Mujson.mulb, Mujson.mulc)
-Mucopy.mucopy()
+
+#判断是否需要远程,"0":本地,"1":远程,"2":远程+本地,
+if Mujson.muremote is "0":
+    Mucopy.mucopy()
+elif Mujson.muremote is "1":
+    Muftp.muftp()
+elif Mujson.muremote is "2":
+    Muftp.muftp()
+    Mucopy.mucopy()
 
 #输出完成信息
 print("All DATA COPIED SUCCESSFULLY %s " % (Mujson.mudir))
