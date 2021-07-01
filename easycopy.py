@@ -336,15 +336,6 @@ jsondata, nowdir = mkpathandreadjson(nowdir)
 #检查easycopy.json各项值的正确性,返回日期，以及是否远程
 begindate, enddate, remoteornot = checkjson(jsondata)
 
-#新建保存目录
-# try:
-#     makedirs(nowdir)
-# except Exception as err:
-#     print(err)
-#     print("CAN NOT NEW DIRECTORY")
-#     system("pause")
-#     exit()
-
 #构造日期列表l0,l1,l2
 l0, l1, l2 = geteveryday(begindate, enddate)
 
