@@ -159,6 +159,10 @@ def everyip(ip, l0, l1, l2):
     Datanlst = ftp.nlst("mylogserver/Data")
     Lognlst = ftp.nlst("mylogserver/Log")
 
+    ftpnlst = [
+        Datanlst, Lognlst, doginfonlst, sysinfonlst, alarmsnlst, buttonnlst,
+        errorsnlst, replayslst
+    ]
     wxjsoftname = "ABCMW001.RAR"
     for ele in searchname(wxjnlst):
         if "MW" in ele or "WX" in ele:
@@ -183,8 +187,7 @@ def everyip(ip, l0, l1, l2):
     download(ftp, q2, q3)
 
     for Data, Log, doginfo, sysinfo, alarms, button, errors, replays in zip_longest(
-            Datanlst, Lognlst, doginfonlst, sysinfonlst, alarmsnlst,
-            buttonnlst, errorsnlst, replayslst):
+            *ftpnlst):
         for s0, s1, s2 in zip(l0, l1, l2):
             if Data:
                 if s0 in Data:
@@ -334,13 +337,13 @@ jsondata, nowdir = mkpathandreadjson(nowdir)
 begindate, enddate, remoteornot = checkjson(jsondata)
 
 #新建保存目录
-try:
-    makedirs(nowdir)
-except Exception as err:
-    print(err)
-    print("CAN NOT NEW DIRECTORY")
-    system("pause")
-    exit()
+# try:
+#     makedirs(nowdir)
+# except Exception as err:
+#     print(err)
+#     print("CAN NOT NEW DIRECTORY")
+#     system("pause")
+#     exit()
 
 #构造日期列表l0,l1,l2
 l0, l1, l2 = geteveryday(begindate, enddate)
