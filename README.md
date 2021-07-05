@@ -6,7 +6,7 @@
 * `remote`：此值为`0`时，拷贝本地计算机维修机和日志数据；此值为`1`时，开启FTP远程下载功能；此值为`2`时，开启FTP远程下载功能和本地数据;
 * IP列表：`remote为1或2时`，此项设置才有作用。命名可以为`ip0、ip1、ip2、ip3`等等，依照地铁项目IP分配表依次添加各站维修机IP
 * 双击或右键打开软件mucopy.exe运行，等待软件自动执行完毕，任意键退出或关闭控制台，生成数据在同目录下以此时日期命名的文件夹。
-* MuCopy[下载链接](https://github.com/qusseei/EasyCopy/releases/tag/V1.2)
+* MuCopy[下载链接](https://github.com/qusseei/EasyCopy/releases)
 ## mucopy.json示例如下
 ```javascript
 {
