@@ -9,7 +9,7 @@ from itertools import zip_longest
 from shutil import copy
 
 
-#Json类，读取easycopy.json,检查该json,生成构造日期list
+#Json类，读取mucopy.json,检查该json,生成构造日期list
 class MUJson:
     #初始化
     def __init__(self):
@@ -19,9 +19,9 @@ class MUJson:
         self.mula, self.mulb, self.mulc = [[] for i in range(3)]
 
     def mujson(self):
-        print("START READ EASYCOPY.JSON")
+        print("START READ MUCOPY.JSON")
         self.__checkjson()
-        print("EASYCOPY.JSON READ SUCCESSFULLY\n")
+        print("MUCOPY.JSON READ SUCCESSFULLY\n")
 
     #检查各项值的合理性
     def __checkjson(self):
@@ -37,12 +37,12 @@ class MUJson:
             if self.mudata["remote"] in ("0", "1", "2"):
                 pass
             else:
-                print("ERROR EASYCOPT.JSON STARTTIME,ENDTIME,REMOTE")
+                print("ERROR MUCOPT.JSON STARTTIME,ENDTIME,REMOTE")
                 system("pause")
                 exit()
         except Exception as err:
             print(err)
-            print("ERROR EASYCOPT.JSON STARTTIME,ENDTIME,REMOTE")
+            print("ERROR MUCOPT.JSON STARTTIME,ENDTIME,REMOTE")
             system("pause")
             exit()
         #仅远程下载
@@ -54,10 +54,10 @@ class MUJson:
             if not self.mudata:
                 for ele in self.mudata:
                     if not self.__is_ipv4(ele):
-                        print("ERROR EASYCOPT.JSON IP")
+                        print("ERROR MUCOPT.JSON IP")
                         system("pause")
                         exit()
-                print("ERROR EASYCOPT.JSON IP")
+                print("ERROR MUCOPT.JSON IP")
                 system("pause")
                 exit()
         #远程下载和本地复制
@@ -69,10 +69,10 @@ class MUJson:
             if not self.mudata:
                 for ele in self.mudata:
                     if not self.__is_ipv4(ele):
-                        print("ERROR EASYCOPT.JSON IP")
+                        print("ERROR MUCOPT.JSON IP")
                         system("pause")
                         exit()
-                print("ERROR EASYCOPT.JSON IP")
+                print("ERROR MUCOPT.JSON IP")
                 system("pause")
                 exit()
         #仅本地复制
@@ -80,15 +80,15 @@ class MUJson:
             self.muremote = "0"
         self.__geteveryday(begindate, enddate)
 
-    #读取easycopy.py，更新mudir的值
+    #读取mucopy.py，更新mudir的值
     def __getjson(self):
         nowtime = datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S')
         try:
-            self.mudata = load(open(path.join(self.mudir, "easycopy.json")))
+            self.mudata = load(open(path.join(self.mudir, "mucopy.json")))
             self.mudir = path.join(self.mudir, nowtime)
         except Exception as err:
             print(err)
-            print("CAN NOT FIND EASYCOPY.JSON")
+            print("CAN NOT FIND MUCOPY.JSON")
             system("pause")
             exit()
 
