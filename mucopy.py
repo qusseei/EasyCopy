@@ -13,6 +13,7 @@ from shutil import copy
 class MUJson:
     #初始化
     def __init__(self):
+        #mudir F:\  mula 2021-07-08 mulb 2021_07_08 mulc 5_9、5_10
         self.mudir = getcwd()
         self.mudata = {}
         self.muremote = "0"
@@ -34,15 +35,24 @@ class MUJson:
         try:
             begindate = datetime.strptime(self.mudata["starttime"], "%Y-%m-%d")
             enddate = datetime.strptime(self.mudata["endtime"], "%Y-%m-%d")
+        except Exception as err:
+            print(err)
+            print("ERROR MUCOPT.JSON STARTTIME,ENDTIME")
+            system("pause")
+            exit()
+        #日期生成需要的列表
+        self.__geteveryday(begindate, enddate)
+        #验证remote的合理性
+        try:
             if self.mudata["remote"] in ("0", "1", "2"):
                 pass
             else:
-                print("ERROR MUCOPT.JSON STARTTIME,ENDTIME,REMOTE")
+                print("ERROR MUCOPT.JSON REMOTE")
                 system("pause")
                 exit()
         except Exception as err:
             print(err)
-            print("ERROR MUCOPT.JSON STARTTIME,ENDTIME,REMOTE")
+            print("ERROR MUCOPT.JSON REMOTE")
             system("pause")
             exit()
         #仅远程下载
@@ -76,11 +86,10 @@ class MUJson:
                 system("pause")
                 exit()
         #仅本地复制
-        else:
+        elif self.mudata["remote"] is "0":
             self.muremote = "0"
-        self.__geteveryday(begindate, enddate)
 
-    #读取mucopy.py，更新mudir的值
+    #读取mucopy.json，更新mudir的值
     def __getjson(self):
         nowtime = datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S')
         try:
@@ -92,7 +101,7 @@ class MUJson:
             system("pause")
             exit()
 
-    #检查ip的合理性
+    #检查ip地址的合理性
     def __is_ipv4(ip: str) -> bool:
         return True if [1] * 4 == [
             x.isdigit() and 0 <= int(x) <= 255 for x in ip.split(".")
@@ -100,14 +109,18 @@ class MUJson:
 
     #构造生成3个日期列表
     def __geteveryday(self, begindate, enddate):
+        #比较起始日期，如果时间早晚不对，则交换起始日期
         if (begindate > enddate):
             begindate, enddate = enddate, begindate
+        #遍历日期，生成列表mula 2021-07-08
         while begindate <= enddate:
             date_str = begindate.strftime("%Y-%m-%d")
             self.mula.append(date_str)
             begindate += timedelta(days=1)
+        #列表mula生成mulb 2021_07_08
         for date in self.mula:
             self.mulb.append(date.replace("-", "_"))
+        #生成mulc 5_9、5_10、5_11
         for date in self.mulb:
             if (date[5] == "0"):
                 if (date[8] == "0"):
@@ -123,7 +136,7 @@ class MUJson:
 
 #Copy类，根据日期复制维修机回放和日志
 class MUCopy:
-    #初始化，传入各项值
+    #初始化，传入路径、列表la、lb、lc
     def __init__(self, mudir, mula, mulb, mulc):
         self.mudir = mudir
         self.mula, self.mulb, self.mulc = mula, mulb, mulc
@@ -137,7 +150,7 @@ class MUCopy:
         self.__unrar()
         print("LOCAL DATA COPY SUCCESSFULLY\n")
 
-    #得到站名缩写
+    #得到E盘维修机下站名缩写，添加至mudir后面
     def __getstationame(self):
         try:
             stationame = glob(path.join("E:\\jd1awxj", "*w*.RAR"))[0][11:14]
@@ -150,7 +163,9 @@ class MUCopy:
 
     #遍历并复制维修机数据
     def __copywxj(self):
+        #遍历jd1awxj
         for root, dirs, files in walk("e:\\jd1awxj"):
+            #遍历并新建既有的文件夹目录
             for dir in dirs:
                 try:
                     makedirs(path.join(self.mudir + root[2:], dir))
@@ -158,10 +173,12 @@ class MUCopy:
                     print(err)
                     system("pause")
                     exit()
+            #遍历文件并判断日期下载文件
             for file in files:
                 for s1, s2 in zip(self.mulb, self.mulc):
                     if s1 in file or s2 in file:
                         self.__ccopy(root, file)
+            #下载维修机软件包
             for file in files:
                 if ("RAR" in file or "rar" in file) and ("WX" in file
                                                          or "MW" in file):
@@ -170,7 +187,9 @@ class MUCopy:
 
     #遍历并复制LOG数据
     def __copylog(self):
+        #遍历mylogserver
         for root, dirs, files in walk("e:\\mylogserver"):
+            #遍历并新建既有的文件夹目录
             for dir in dirs:
                 try:
                     makedirs(path.join(self.mudir + root[2:], dir))
@@ -178,17 +197,19 @@ class MUCopy:
                     print(err)
                     system("pause")
                     exit()
+            #遍历文件并判断日期下载文件
             for file in files:
                 for s0 in self.mula:
                     if s0 in file:
                         self.__ccopy(root, file)
+            #下载日志软件包
             for file in files:
                 if ("RAR" in file or "rar" in file) and ("MyLogServer_" in file
                                                          or "LOG" in file):
                     self.__ccopy(root, file)
                     break
 
-    #复制文件函数
+    #拼接目录和文件，确定下载路径、复制文件
     def __ccopy(self, root, file):
         try:
             temp = path.join(root, file)
@@ -212,20 +233,20 @@ class MUCopy:
 
 #FTP类，根据IP、日期远程下载维修机回放和日志
 class MUFtp:
-    #初始化，传入各项值
+    #初始化，传入路径、jsondata、列表la、lb、lc等值
     def __init__(self, mudir, mudata, mula, mulb, mulc):
         self.mudir = mudir
         self.mudata = mudata
         self.mula, self.mulb, self.mulc = mula, mulb, mulc
 
-    #主函数
+    #主函数，遍历ip下载
     def muftp(self):
         for ip in self.mudata:
             print("START DOWNLOAD REMOTE DATA")
             self.__dlfromip(self.mudata[ip])
             print("REMOTE DATA DOWNLOAD SUCCESSFULLY\n")
 
-    #建立对应IP的FTP连接，调用函数
+    #建立对应IP的FTP连接，调用其他函数
     def __dlfromip(self, ip):
         try:
             ftp = FTP()
@@ -237,7 +258,7 @@ class MUFtp:
             print("FTP CONNECT ERROR")
             system("pause")
             exit()
-        #调用其他函数，保证mudir值不被修改
+        #调用其他函数，保证mudir值在下载完毕后不被修改
         temp = self.mudir
         self.__dlsoft(ftp, ip)
         self.__traverse(ftp)
@@ -247,17 +268,23 @@ class MUFtp:
 
     #下载维修机和日志软件包
     def __dlsoft(self, ftp, ip):
+        #生成wxj、log文件列表
         wxjnlst = ftp.nlst("jd1awxj")
         mylognlst = ftp.nlst("mylogserver")
+        #默认站名软件ABCMW001.RAR
         wxjsoftname = "ABCMW001.RAR"
+        #遍历wxj文件列表，返回wxj软件名称，多个压缩包只返回第一个
         for ele in self.__searchname(wxjnlst):
             if "MW" in ele or "WX" in ele:
                 wxjsoftname = ele
                 break
         #生成包含站名、IP的新mudir
         self.mudir = path.join(self.mudir, wxjsoftname[0:3] + "_" + ip)
+        #新建wxj、log下各文件夹
         self.__newfile(self.mudir)
+        #默认log软件ABCLOG001.RAR
         logsoftname = "ABCLOG001.RAR"
+        #遍历log文件列表，返回wxj软件名称，多个压缩包只返回第一个
         for ele in self.__searchname(mylognlst):
             if "LOG" in ele:
                 logsoftname = ele
@@ -270,7 +297,7 @@ class MUFtp:
         self.__download(ftp, q0, q1)
         self.__download(ftp, q2, q3)
 
-    #返回以RAR为后缀的文件名
+    #遍历列表，返回以RAR为后缀的文件名
     def __searchname(self, list):
         templist = []
         for ele in list:
@@ -279,7 +306,7 @@ class MUFtp:
                 templist.append(ele)
         return templist
 
-    #创建各项空文件夹
+    #创建wxj、log下空文件夹
     def __newfile(self, newpath):
         try:
             makedirs(path.join(self.mudir, newpath, "jd1awxj", "replays"))
@@ -295,7 +322,7 @@ class MUFtp:
             system("pause")
             exit()
 
-    #FTP下载函数
+    #FTP下载函数，缓冲区1024，二进制方式读写
     def __download(self, ftp, localfile, remotefile):
         try:
             buf_size = 1024
@@ -311,6 +338,7 @@ class MUFtp:
 
     #遍历各文件夹并下载
     def __traverse(self, ftp):
+        #构造列表
         ftpnlst = [
             ftp.nlst("mylogserver/Data"),
             ftp.nlst("mylogserver/Log"),
@@ -321,6 +349,7 @@ class MUFtp:
             ftp.nlst("jd1awxj/errors"),
             ftp.nlst("jd1awxj/replays")
         ]
+        #遍历文件列表，下载在指定日期的文件
         for Data, Log, doginfo, sysinfo, alarms, button, errors, replays in zip_longest(
                 *ftpnlst):
             for s0, s1, s2 in zip(self.mula, self.mulb, self.mulc):
@@ -349,7 +378,7 @@ class MUFtp:
                     if s2 in replays:
                         self.__dlwxjlog(ftp, replays, "replays")
 
-    #分别指定不同文件的下载位置
+    #分别指定wxj、log的下载位置
     def __dlwxjlog(self, ftp, file, type):
         if type in ("Data", "Log"):
             ra = path.join(self.mudir, "MYLOGSERVER", type, file)
