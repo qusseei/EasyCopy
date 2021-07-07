@@ -355,40 +355,40 @@ class MUFtp:
             for s0, s1, s2 in zip(self.mula, self.mulb, self.mulc):
                 if Data:
                     if s0 in Data:
-                        self.__dlwxjlog(ftp, Data, "Data")
+                        self.__dllog(ftp, Data, "Data")
                 if Log:
                     if s0 in Log:
-                        self.__dlwxjlog(ftp, Log, "Log")
+                        self.__dllog(ftp, Log, "Log")
                 if doginfo:
                     if s1 in doginfo:
-                        self.__dlwxjlog(ftp, doginfo, "doginfo")
+                        self.__dlwxj(ftp, doginfo, "doginfo")
                 if sysinfo:
                     if s1 in sysinfo:
-                        self.__dlwxjlog(ftp, sysinfo, "sysinfo")
+                        self.__dlwxj(ftp, sysinfo, "sysinfo")
                 if alarms:
                     if s2 in alarms:
-                        self.__dlwxjlog(ftp, alarms, "alarms")
+                        self.__dlwxj(ftp, alarms, "alarms")
                 if button:
                     if s2 in button:
-                        self.__dlwxjlog(ftp, button, "button")
+                        self.__dlwxj(ftp, button, "button")
                 if errors:
                     if s2 in errors:
-                        self.__dlwxjlog(ftp, errors, "errors")
+                        self.__dlwxj(ftp, errors, "errors")
                 if replays:
                     if s2 in replays:
-                        self.__dlwxjlog(ftp, replays, "replays")
+                        self.__dlwxj(ftp, replays, "replays")
 
-    #分别指定wxj、log的下载位置
-    def __dlwxjlog(self, ftp, file, type):
-        if type in ("Data", "Log"):
-            ra = path.join(self.mudir, "MYLOGSERVER", type, file)
-            rb = 'RETR ' + path.join("MYLOGSERVER\\", type, file)
-            self.__download(ftp, ra, rb)
-        elif type in ("doginfo", "sysinfo", "alarms", "button", "replays",
-                      "errors"):
-            ra = path.join(self.mudir, "JD1AWXJ", type, file)
-            rb = 'RETR ' + path.join("JD1AWXJ\\", type, file)
-            self.__download(ftp, ra, rb)
+    #分别指定wxj的下载位置
+    def __dlwxj(self, ftp, file, type):
+        ra = path.join(self.mudir, "JD1AWXJ", type, file)
+        rb = 'RETR ' + path.join("JD1AWXJ\\", type, file)
+        self.__download(ftp, ra, rb)
+
+    #分别指定log的下载位置
+    def __dllog(self, ftp, file, type):
+        ra = path.join(self.mudir, "MYLOGSERVER", type, file)
+        rb = 'RETR ' + path.join("MYLOGSERVER\\", type, file)
+        self.__download(ftp, ra, rb)
 
     #解压软件到指定位置
     def __unrar(self):
