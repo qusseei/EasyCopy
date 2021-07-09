@@ -271,6 +271,11 @@ class MUFtp:
         #生成wxj、log文件列表
         wxjnlst = ftp.nlst("jd1awxj")
         mylognlst = ftp.nlst("mylogserver")
+        #返回空列表就退出程序
+        if (not wxjnlst) or (not mylognlst):
+            print("ERROR, NO DATA UNDER THE REMOTE FOLDER")
+            system("pause")
+            exit()
         #默认站名软件ABCMW001.RAR
         wxjsoftname = "ABCMW001.RAR"
         #遍历wxj文件列表，返回wxj软件名称，多个压缩包只返回第一个
