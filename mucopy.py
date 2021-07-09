@@ -16,13 +16,13 @@ class MUJson:
         #mudir F:\  mula 2021-07-08 mulb 2021_07_08 mulc 5_9、5_10
         self.mudir = getcwd()
         self.mudata = {}
-        self.muremote = "0"
+        self.muremote = '0'
         self.mula, self.mulb, self.mulc = [[] for i in range(3)]
 
     def mujson(self):
-        print("START READ MUCOPY.JSON")
+        print('START READ MUCOPY.JSON')
         self.__checkjson()
-        print("MUCOPY.JSON READ SUCCESSFULLY\n")
+        print('MUCOPY.JSON READ SUCCESSFULLY\n')
 
     #检查各项值的合理性
     def __checkjson(self):
@@ -33,12 +33,12 @@ class MUJson:
                 del self.mudata[key]
         #验证日期的合理性
         try:
-            begindate = datetime.strptime(self.mudata["starttime"], "%Y-%m-%d")
-            enddate = datetime.strptime(self.mudata["endtime"], "%Y-%m-%d")
+            begindate = datetime.strptime(self.mudata['starttime'], '%Y-%m-%d')
+            enddate = datetime.strptime(self.mudata['endtime'], '%Y-%m-%d')
         except Exception as err:
             print(err)
-            print("ERROR MUCOPT.JSON STARTTIME,ENDTIME")
-            system("pause")
+            print('ERROR MUCOPT.JSON STARTTIME,ENDTIME')
+            system('pause')
             exit()
         #日期生成需要的列表
         self.__geteveryday(begindate, enddate)
@@ -276,31 +276,48 @@ class MUFtp:
             print("ERROR, NO DATA UNDER THE REMOTE FOLDER")
             system("pause")
             exit()
-        #默认站名软件ABCMW001.RAR
-        wxjsoftname = "ABCMW001.RAR"
+        #默认站名软件为空
+        wxjsoftname = ''
         #遍历wxj文件列表，返回wxj软件名称，多个压缩包只返回第一个
         for ele in self.__searchname(wxjnlst):
-            if "MW" in ele or "WX" in ele:
+            if 'MW' in ele or 'WX' in ele:
                 wxjsoftname = ele
                 break
-        #生成包含站名、IP的新mudir
-        self.mudir = path.join(self.mudir, wxjsoftname[0:3] + "_" + ip)
-        #新建wxj、log下各文件夹
-        self.__newfile(self.mudir)
-        #默认log软件ABCLOG001.RAR
-        logsoftname = "ABCLOG001.RAR"
+        #如果返回wxj站名软件不为空
+        if not wxjsoftname is '':
+            #生成包含站名、IP的新mudir
+            self.mudir = path.join(self.mudir, wxjsoftname[0:3] + "_" + ip)
+            #新建wxj、log下各文件夹
+            self.__newfile(self.mudir)
+            #下载该软件
+            q0 = path.join(self.mudir, self.mudir, 'JD1AWXJ', wxjsoftname)
+            q1 = 'RETR ' + path.join('JD1AWXJ', wxjsoftname)
+            self.__download(ftp, q0, q1)
+        #返回wxj站名软件为空
+        else:
+            #默认名字'ABCMW001.RAR'
+            wxjsoftname = 'ABCMW001.RAR'
+            #生成包含站名、IP的新mudir
+            self.mudir = path.join(self.mudir, wxjsoftname[0:3] + "_" + ip)
+            #新建wxj、log下各文件夹
+            self.__newfile(self.mudir)
+            print('NO WXJ SOFT,DEFAULT NAME ABC')
+        #默认log软件为空
+        logsoftname = ''
         #遍历log文件列表，返回wxj软件名称，多个压缩包只返回第一个
         for ele in self.__searchname(mylognlst):
             if "LOG" in ele:
                 logsoftname = ele
                 break
-        #下载维修机和日志软件
-        q0 = path.join(self.mudir, self.mudir, "JD1AWXJ", wxjsoftname)
-        q1 = 'RETR ' + path.join("JD1AWXJ", wxjsoftname)
-        q2 = path.join(self.mudir, self.mudir, "MYLOGSERVER", logsoftname)
-        q3 = 'RETR ' + path.join("MYLOGSERVER", logsoftname)
-        self.__download(ftp, q0, q1)
-        self.__download(ftp, q2, q3)
+        #如果返回log站名软件不为空
+        if not logsoftname is '':
+            #下载该软件
+            q2 = path.join(self.mudir, self.mudir, "MYLOGSERVER", logsoftname)
+            q3 = 'RETR ' + path.join("MYLOGSERVER", logsoftname)
+            self.__download(ftp, q2, q3)
+        #返回log站名软件为空
+        else:
+            print('NO LOG SOFT')
 
     #遍历列表，返回以RAR为后缀的文件名
     def __searchname(self, list):
