@@ -254,6 +254,7 @@ class MUFtp:
             # ftp.login('Remote','jd1awxj')
             ftp.login('Anonymous', 'jd1awxj')
         except Exception as err:
+            ftp.quit()
             print(err)
             print('FTP CONNECT ERROR')
             system('pause')
@@ -347,10 +348,11 @@ class MUFtp:
     #FTP下载函数，缓冲区1024，二进制方式读写
     def __download(self, ftp, localfile, remotefile):
         try:
-            buf_size = 1024
-            fp = open(localfile, 'wb')
-            ftp.retrbinary(remotefile, fp.write, buf_size)
-            fp.close()
+            # fp = open(localfile, 'wb')
+            # ftp.retrbinary(remotefile, fp.write, 1024)
+            # fp.close()
+            with open(localfile, 'wb') as fp:
+                ftp.retrbinary(remotefile, fp.write, 1024)
             print('SUCCESS DOWNLOAD %s ' % (remotefile[4:]))
             return 1
         except Exception as err:
