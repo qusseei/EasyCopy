@@ -248,23 +248,24 @@ class MUFtp:
 
     #建立对应IP的FTP连接，调用其他函数
     def __dlfromip(self, ip):
-        try:
-            ftp = FTP()
-            ftp.connect(ip, 21)
-            # ftp.login('Remote','jd1awxj')
-            ftp.login('Anonymous', 'jd1awxj')
-        except Exception as err:
-            print(err)
-            print('FTP CONNECT ERROR')
-            system('pause')
-            exit()
+        # try:
+        #     ftp = FTP(ip, 'Anonymous', 'jd1awxj',timeout=10)
+        #     # ftp.connect(ip, 21)
+        #     # ftp.login('Remote','jd1awxj')
+        #     # ftp.login('Anonymous', 'jd1awxj')
+        # except Exception as err:
+        #     print(err)
+        #     print('FTP CONNECT ERROR')
+        #     system('pause')
+        #     exit()
+        with FTP(ip, 'Anonymous', 'jd1awxj',timeout=10) as ftp:
         #调用其他函数，保证mudir值在下载完毕后不被修改
-        temp = self.mudir
-        self.__dlsoft(ftp, ip)
-        self.__traverse(ftp)
-        self.__unrar()
-        self.mudir = temp
-        ftp.quit()
+            temp = self.mudir
+            self.__dlsoft(ftp, ip)
+            self.__traverse(ftp)
+            self.__unrar()
+            self.mudir = temp
+            ftp.quit()
 
     #下载维修机和日志软件包
     def __dlsoft(self, ftp, ip):
