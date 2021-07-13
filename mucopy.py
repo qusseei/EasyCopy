@@ -254,7 +254,6 @@ class MUFtp:
             # ftp.login('Remote','jd1awxj')
             ftp.login('Anonymous', 'jd1awxj')
         except Exception as err:
-            ftp.quit()
             print(err)
             print('FTP CONNECT ERROR')
             system('pause')
