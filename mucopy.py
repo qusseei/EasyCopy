@@ -1,12 +1,13 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
-from os import system, getcwd, makedirs, walk, path
+from os import system, getcwd, makedirs, walk, utime, stat, path
 from datetime import datetime, timedelta
 from json import load
 from ftplib import FTP
 from glob import glob
 from itertools import zip_longest
-from shutil import copy
+from shutil import copy2
+import time
 
 
 #Json类，读取mucopy.json,检查该json,生成构造日期list
@@ -218,7 +219,7 @@ class MUCopy:
     def __ccopy(self, root, file):
         try:
             temp = path.join(root, file)
-            copy(temp, path.join(self.mudir + root[2:], file))
+            copy2(temp, path.join(self.mudir + root[2:], file))
             print('SUCCESS COPY %s ' % temp)
         except Exception as err:
             print(err)
@@ -264,6 +265,7 @@ class MUFtp:
         #     system('pause')
         #     exit()
         with FTP(ip, 'Anonymous', 'jd1awxj', timeout=10) as ftp:
+            print(ftp.getwelcome())
             #调用其他函数，保证mudir值在下载完毕后不被修改
             temp = self.mudir
             self.__dlsoft(ftp, ip)
@@ -353,12 +355,20 @@ class MUFtp:
     #FTP下载函数，缓冲区1024，二进制方式读写
     def __download(self, ftp, localfile, remotefile):
         try:
-            # fp = open(localfile, 'wb')
-            # ftp.retrbinary(remotefile, fp.write, 1024)
-            # fp.close()
             with open(localfile, 'wb') as fp:
                 ftp.retrbinary(remotefile, fp.write, 1024)
+            
+            m_time = ftp.sendcmd('MDTM ' + remotefile[5:])[4:]
+            m_time = datetime.strptime(m_time, '%Y%m%d%H%M%S')
+            m_time = datetime.strftime(m_time, '%Y-%m-%d %H:%M:%S')
+            m_time = time.strptime(m_time, '%Y-%m-%d %H:%M:%S')
+            m_time = int(time.mktime(m_time))
+            a_time = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
+            a_time = time.strptime(a_time, '%Y-%m-%d %H:%M:%S')
+            a_time = int(time.mktime(a_time))
+            utime(localfile, (a_time, m_time))
             print('SUCCESS DOWNLOAD %s ' % (remotefile[4:]))
+
             return 1
         except Exception as err:
             print(err)
