@@ -157,14 +157,16 @@ class MUCopy:
             self.mudir = path.join(self.mudir, stationame)
         except Exception as err:
             print(err)
-            print('CAN NOT FIND JA1AWXJ')
-            system('pause')
-            exit()
+            print('CAN NOT FIND JA1AWXJ SOFT')
+            self.mudir = path.join(self.mudir, 'ABC')
 
     #遍历并复制维修机数据
     def __copywxj(self):
         #遍历jd1awxj
         for root, dirs, files in walk('e:\\jd1awxj'):
+            #新建根目录
+            if root is 'e:\\jd1awxj':
+                makedirs(self.mudir + root[2:])
             #遍历并新建既有的文件夹目录
             for dir in dirs:
                 try:
@@ -176,7 +178,7 @@ class MUCopy:
             #遍历文件并判断日期下载文件
             for file in files:
                 for s1, s2 in zip(self.mulb, self.mulc):
-                    if s1 in file or s2 in file:
+                    if s1 in file or (s2 in file and not ('1' + s2) in file):
                         self.__ccopy(root, file)
             #下载维修机软件包
             for file in files:
@@ -189,6 +191,9 @@ class MUCopy:
     def __copylog(self):
         #遍历mylogserver
         for root, dirs, files in walk('e:\\mylogserver'):
+            #新建根目录
+            if root is 'e:\\mylogserver':
+                makedirs(self.mudir + root[2:])
             #遍历并新建既有的文件夹目录
             for dir in dirs:
                 try:
@@ -258,8 +263,8 @@ class MUFtp:
         #     print('FTP CONNECT ERROR')
         #     system('pause')
         #     exit()
-        with FTP(ip, 'Anonymous', 'jd1awxj',timeout=10) as ftp:
-        #调用其他函数，保证mudir值在下载完毕后不被修改
+        with FTP(ip, 'Anonymous', 'jd1awxj', timeout=10) as ftp:
+            #调用其他函数，保证mudir值在下载完毕后不被修改
             temp = self.mudir
             self.__dlsoft(ftp, ip)
             self.__traverse(ftp)
@@ -390,16 +395,16 @@ class MUFtp:
                     if s1 in sysinfo:
                         self.__dlwxj(ftp, sysinfo, 'sysinfo')
                 if alarms:
-                    if s2 in alarms:
+                    if s2 in alarms and not ('1' + s2) in alarms:
                         self.__dlwxj(ftp, alarms, 'alarms')
                 if button:
-                    if s2 in button:
+                    if s2 in button and not ('1' + s2) in button:
                         self.__dlwxj(ftp, button, 'button')
                 if errors:
-                    if s2 in errors:
+                    if s2 in errors and not ('1' + s2) in errors:
                         self.__dlwxj(ftp, errors, 'errors')
                 if replays:
-                    if s2 in replays:
+                    if s2 in replays and not ('1' + s2) in replays:
                         self.__dlwxj(ftp, replays, 'replays')
 
     #分别指定wxj的下载位置
