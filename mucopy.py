@@ -1,13 +1,13 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
-from os import system, getcwd, makedirs, walk, utime, stat, path
+from os import system, getcwd, makedirs, walk, utime, path
 from datetime import datetime, timedelta
 from json import load
 from ftplib import FTP
 from glob import glob
 from itertools import zip_longest
 from shutil import copy2
-import time
+from time import strptime, mktime, time
 
 
 #Json类，读取mucopy.json,检查该json,生成构造日期list
@@ -93,14 +93,9 @@ class MUJson:
     #读取mucopy.json，更新mudir的值
     def __getjson(self):
         nowtime = datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S')
-        try:
-            self.mudata = load(open(path.join(self.mudir, 'mucopy.json')))
+        with open(path.join(self.mudir, 'mucopy.json')) as f:
+            self.mudata = load(f)
             self.mudir = path.join(self.mudir, nowtime)
-        except Exception as err:
-            print(err)
-            print('CAN NOT FIND MUCOPY.JSON')
-            system('pause')
-            exit()
 
     #检查ip地址的合理性
     def __is_ipv4(ip: str) -> bool:
@@ -158,7 +153,7 @@ class MUCopy:
             self.mudir = path.join(self.mudir, stationame)
         except Exception as err:
             print(err)
-            print('CAN NOT FIND JA1AWXJ SOFT')
+            print('CAN NOT FIND JA1AWXJ SOFT, SET DEFAULT NAME "ABC"')
             self.mudir = path.join(self.mudir, 'ABC')
 
     #遍历并复制维修机数据
@@ -179,6 +174,7 @@ class MUCopy:
             #遍历文件并判断日期下载文件
             for file in files:
                 for s1, s2 in zip(self.mulb, self.mulc):
+                    #防止1_1、2_1匹配到11_1、12_1
                     if s1 in file or (s2 in file and not ('1' + s2) in file):
                         self.__ccopy(root, file)
             #下载维修机软件包
@@ -254,16 +250,6 @@ class MUFtp:
 
     #建立对应IP的FTP连接，调用其他函数
     def __dlfromip(self, ip):
-        # try:
-        #     ftp = FTP(ip, 'Anonymous', 'jd1awxj',timeout=10)
-        #     # ftp.connect(ip, 21)
-        #     # ftp.login('Remote','jd1awxj')
-        #     # ftp.login('Anonymous', 'jd1awxj')
-        # except Exception as err:
-        #     print(err)
-        #     print('FTP CONNECT ERROR')
-        #     system('pause')
-        #     exit()
         with FTP(ip, 'Anonymous', 'jd1awxj', timeout=10) as ftp:
             print(ftp.getwelcome())
             #调用其他函数，保证mudir值在下载完毕后不被修改
@@ -352,28 +338,29 @@ class MUFtp:
             system('pause')
             exit()
 
-    #FTP下载函数，缓冲区1024，二进制方式读写
+    #FTP下载函数，缓冲区1024，二进制方式读写,获取文件原始修改时间，并写入
     def __download(self, ftp, localfile, remotefile):
         try:
             with open(localfile, 'wb') as fp:
                 ftp.retrbinary(remotefile, fp.write, 1024)
-            
-            m_time = ftp.sendcmd('MDTM ' + remotefile[5:])[4:]
-            m_time = datetime.strptime(m_time, '%Y%m%d%H%M%S')
-            m_time = datetime.strftime(m_time, '%Y-%m-%d %H:%M:%S')
-            m_time = time.strptime(m_time, '%Y-%m-%d %H:%M:%S')
-            m_time = int(time.mktime(m_time))
-            a_time = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
-            a_time = time.strptime(a_time, '%Y-%m-%d %H:%M:%S')
-            a_time = int(time.mktime(a_time))
-            utime(localfile, (a_time, m_time))
             print('SUCCESS DOWNLOAD %s ' % (remotefile[4:]))
-
-            return 1
         except Exception as err:
+            self.__download(ftp, localfile, remotefile)
             print(err)
             print('FAILED DOWNLOAD %s ' % (remotefile))
-            return 0
+        try:
+            #获取ftp上文件原始修改时间字符串
+            m_time = ftp.sendcmd('MDTM ' + remotefile[5:])[4:]
+            #字符串转为time对象
+            m_time = strptime(m_time, '%Y%m%d%H%M%S')
+            #返回10位时间戳
+            m_time = int(mktime(m_time))
+            #获取当前时间，生成10位时间戳
+            a_time = int(time())
+            #设置文件的访问时间和修改时间
+            utime(localfile, (a_time, m_time))
+        except Exception as err:
+            pass
 
     #遍历各文件夹并下载
     def __traverse(self, ftp):
@@ -405,6 +392,7 @@ class MUFtp:
                     if s1 in sysinfo:
                         self.__dlwxj(ftp, sysinfo, 'sysinfo')
                 if alarms:
+                    #防止1_1、2_1匹配到11_1、12_1
                     if s2 in alarms and not ('1' + s2) in alarms:
                         self.__dlwxj(ftp, alarms, 'alarms')
                 if button:
