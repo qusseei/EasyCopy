@@ -143,6 +143,7 @@ class MUCopy:
         self.__getstationame()
         self.__copywxj()
         self.__copylog()
+        self.__unrar()
         print('LOCAL DATA COPY SUCCESSFULLY\n')
 
     #得到E盘维修机下站名缩写，添加至mudir后面
@@ -159,54 +160,56 @@ class MUCopy:
     def __copywxj(self):
         #遍历jd1awxj
         for root, dirs, files in walk('e:\\jd1awxj'):
-            #创建root
-            if root:
+            #新建根目录
+            if root is 'e:\\jd1awxj':
+                makedirs(self.mudir + root[2:])
+            #遍历并新建既有的文件夹目录
+            for dir in dirs:
                 try:
-                    makedirs(path.join(self.mudir, root[3:]))
+                    makedirs(path.join(self.mudir + root[2:], dir))
                 except Exception as err:
                     print(err)
                     system('pause')
                     exit()
-            lwxj = [
-                'e:\jd1awxj', 'e:\jd1awxj\images', 'e:\jd1awxj\ini',
-                'e:\jd1awxj\netmap'
-            ]
-            if root in lwxj or root[:-2] in lwxj:
-                for file in files:
-                    self.__ccopy(root, file)
             #遍历文件并判断日期下载文件
-            else:
-                for file in files:
-                    for s1, s2 in zip(self.mulb, self.mulc):
-                        #防止1_1、2_1匹配到11_1、12_1
-                        if s1 in file or (s2 in file
-                                          and not ('1' + s2) in file):
-                            self.__ccopy(root, file)
-
+            for file in files:
+                for s1, s2 in zip(self.mulb, self.mulc):
+                    #防止1_1、2_1匹配到11_1、12_1
+                    if s1 in file or (s2 in file and not ('1' + s2) in file):
+                        self.__ccopy(root, file)
+            #下载维修机软件包
+            for file in files:
+                if ('RAR' in file or 'rar' in file) and ('WX' in file
+                                                         or 'MW' in file):
+                    self.__ccopy(root, file)
+                    break
 
     #遍历并复制LOG数据
     def __copylog(self):
         #遍历mylogserver
         for root, dirs, files in walk('e:\\mylogserver'):
-            #创建root
-            if root:
+            #新建根目录
+            if root is 'e:\\mylogserver':
+                makedirs(self.mudir + root[2:])
+            #遍历并新建既有的文件夹目录
+            for dir in dirs:
                 try:
-                    makedirs(path.join(self.mudir, root[3:]))
+                    makedirs(path.join(self.mudir + root[2:], dir))
                 except Exception as err:
                     print(err)
                     system('pause')
                     exit()
             #遍历文件并判断日期下载文件
-            llog = ['e:\mylogserver\Data', 'e:\mylogserver\Log']
-            if root in llog:
-                print(root)
-                for file in files:
-                    for s0 in self.mula:
-                        if s0 in file:
-                            self.__ccopy(root, file)
-            else:
-                for file in files:
+            for file in files:
+                for s0 in self.mula:
+                    if s0 in file:
+                        self.__ccopy(root, file)
+            #下载日志软件包
+            for file in files:
+                if ('RAR' in file or 'rar' in file) and ('MyLogServer_' in file
+                                                         or 'LOG' in file):
                     self.__ccopy(root, file)
+                    break
 
     #拼接目录和文件，确定下载路径、复制文件
     def __ccopy(self, root, file):
