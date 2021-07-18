@@ -170,19 +170,20 @@ class MUCopy:
                 'e:\jd1awxj', 'e:\jd1awxj\images', 'e:\jd1awxj\ini',
                 'e:\jd1awxj\\netmap'
             ]
-            #排除指定目录
+            #指定目录，直接下载
             if root in lwxj or root[:-2] in lwxj:
                 for file in files:
                     self.__ccopy(root, file)
-            #遍历文件并判断日期下载文件
+            #其他目录，遍历文件并判断日期下载文件
             else:
                 for file in files:
                     for s1, s2 in zip(self.mulb, self.mulc):
-                        #防止1_1匹配到1_10、11_1、11_11;防止2_2匹配到2_20、12_2、12_20
+                        #选出日期部分，对比指定日期，防止1_1匹配到1_10、11_1、11_11;防止2_2匹配到2_20、12_2、12_20
                         newfile = ''
                         for ele in file:
                             if ele.isdigit() or ele == '_':
                                 newfile += ele
+                        #日期匹配合适，下载，并进入
                         if s1 in newfile or s2 == newfile:
                             self.__ccopy(root, file)
                             break
@@ -207,6 +208,7 @@ class MUCopy:
                     for s0 in self.mula:
                         if s0 in file:
                             self.__ccopy(root, file)
+                            break
             #遍历文件并判断日期下载文件
             else:
                 for file in files:
@@ -351,6 +353,7 @@ class MUFtp:
                             localfile = path.join(self.mudir, ss[1:], f)
                             remotefile = 'RETR ' + path.join(ss, f)
                             self.__download(ftp, localfile, remotefile)
+                            break
                 else:
                     localfile = path.join(self.mudir, ss[1:], f)
                     remotefile = 'RETR ' + path.join(ss, f)
