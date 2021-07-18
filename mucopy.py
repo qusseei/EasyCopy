@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from json import load
 from ftplib import FTP
 from glob import glob
-from itertools import zip_longest
 from shutil import copy2
 from time import strptime, mktime, time
 
@@ -179,10 +178,14 @@ class MUCopy:
             else:
                 for file in files:
                     for s1, s2 in zip(self.mulb, self.mulc):
-                        #防止1_1、2_1匹配到11_1、12_1
-                        if s1 in file or (s2 in file
-                                          and not ('1' + s2) in file):
+                        #防止1_1匹配到1_10、11_1、11_11;防止2_2匹配到2_20、12_2、12_20
+                        newfile = ''
+                        for ele in file:
+                            if ele.isdigit() or ele == '_':
+                                newfile += ele
+                        if s1 in newfile or s2 == newfile:
                             self.__ccopy(root, file)
+                            break
 
     #遍历并复制LOG数据
     def __copylog(self):
@@ -253,68 +256,6 @@ class MUFtp:
             except Exception as err:
                 print(err)
 
-    def __rtwxj(self, ftp, dic):
-        ftp.cwd(dic)
-        filelist = []
-        ftp.retrlines('LIST', filelist.append)
-        ss = ftp.pwd().replace('/', '\\')
-        makedirs(path.join(self.mudir, ss[1:]))
-        for f in filelist:
-            if f.startswith('d'):
-                if f[55:] == '.':
-                    pass
-                elif f[55:] == '..':
-                    pass
-                else:
-                    self.__rtwxj(ftp, f[55:])
-                    ftp.cwd('..')
-            elif f.startswith('-'):
-                ll = [
-                    '\jd1awxj', '\jd1awxj\images', '\jd1awxj\ini',
-                    '\jd1awxj\\netmap'
-                ]
-                f = f[55:]
-                if ss in ll or ss[:-2] in ll:
-                    localfile = path.join(self.mudir, ss[1:], f)
-                    remotefile = 'RETR ' + path.join(ss, f)
-                    self.__download(ftp, localfile, remotefile)
-                else:
-                    for s1, s2 in zip(self.mulb, self.mulc):
-                        #防止1_1、2_1匹配到11_1、12_1
-                        if s1 in f or (s2 in f and not ('1' + s2) in f):
-                            localfile = path.join(self.mudir, ss[1:], f)
-                            remotefile = 'RETR ' + path.join(ss, f)
-                            self.__download(ftp, localfile, remotefile)
-
-    def __rtmylog(self, ftp, dic):
-        ftp.cwd(dic)
-        filelist = []
-        ftp.retrlines('LIST', filelist.append)
-        ss = ftp.pwd().replace('/', '\\')
-        makedirs(path.join(self.mudir, ss[1:]))
-        for f in filelist:
-            if f.startswith('d'):
-                if f[55:] == '.':
-                    pass
-                elif f[55:] == '..':
-                    pass
-                else:
-                    self.__rtmylog(ftp, f[55:])
-                    ftp.cwd('..')
-            elif f.startswith('-'):
-                ll = ['\mylogserver\Data', '\mylogserver\Log']
-                f = f[55:]
-                if ss in ll:
-                    for s0 in self.mula:
-                        if s0 in f:
-                            localfile = path.join(self.mudir, ss[1:], f)
-                            remotefile = 'RETR ' + path.join(ss, f)
-                            self.__download(ftp, localfile, remotefile)
-                else:
-                    localfile = path.join(self.mudir, ss[1:], f)
-                    remotefile = 'RETR ' + path.join(ss, f)
-                    self.__download(ftp, localfile, remotefile)
-
     def __getstationame(self, ftp, ip):
         wxjnlst = ftp.nlst('jd1awxj')
         if wxjnlst:
@@ -347,6 +288,73 @@ class MUFtp:
             if ele.endswith('.RAR'):
                 templist.append(ele)
         return templist
+
+    def __rtwxj(self, ftp, dic):
+        ftp.cwd(dic)
+        filelist = []
+        ftp.retrlines('LIST', filelist.append)
+        ss = ftp.pwd().replace('/', '\\')
+        makedirs(path.join(self.mudir, ss[1:]))
+        for f in filelist:
+            if f.startswith('d'):
+                if f[55:] == '.':
+                    pass
+                elif f[55:] == '..':
+                    pass
+                else:
+                    self.__rtwxj(ftp, f[55:])
+                    ftp.cwd('..')
+            elif f.startswith('-'):
+                ll = [
+                    '\jd1awxj', '\jd1awxj\images', '\jd1awxj\ini',
+                    '\jd1awxj\\netmap'
+                ]
+                f = f[55:]
+                if ss in ll or ss[:-2] in ll:
+                    localfile = path.join(self.mudir, ss[1:], f)
+                    remotefile = 'RETR ' + path.join(ss, f)
+                    self.__download(ftp, localfile, remotefile)
+                else:
+                    for s1, s2 in zip(self.mulb, self.mulc):
+                        #防止1_1匹配到1_10、11_1、11_11;防止2_2匹配到2_20、12_2、12_20
+                        newfile = ''
+                        for ele in f:
+                            if ele.isdigit() or ele == '_':
+                                newfile += ele
+                        if s1 in newfile or s2 == newfile:
+                            localfile = path.join(self.mudir, ss[1:], f)
+                            remotefile = 'RETR ' + path.join(ss, f)
+                            self.__download(ftp, localfile, remotefile)
+                            break
+
+    def __rtmylog(self, ftp, dic):
+        ftp.cwd(dic)
+        filelist = []
+        ftp.retrlines('LIST', filelist.append)
+        ss = ftp.pwd().replace('/', '\\')
+        makedirs(path.join(self.mudir, ss[1:]))
+        for f in filelist:
+            if f.startswith('d'):
+                if f[55:] == '.':
+                    pass
+                elif f[55:] == '..':
+                    pass
+                else:
+                    self.__rtmylog(ftp, f[55:])
+                    ftp.cwd('..')
+            elif f.startswith('-'):
+                ll = ['\mylogserver\Data', '\mylogserver\Log']
+                f = f[55:]
+                if ss in ll:
+                    for s0 in self.mula:
+                        if s0 in f:
+                            localfile = path.join(self.mudir, ss[1:], f)
+                            remotefile = 'RETR ' + path.join(ss, f)
+                            self.__download(ftp, localfile, remotefile)
+                else:
+                    localfile = path.join(self.mudir, ss[1:], f)
+                    remotefile = 'RETR ' + path.join(ss, f)
+                    self.__download(ftp, localfile, remotefile)
 
     #FTP下载函数，缓冲区1024，二进制方式读写,获取文件原始修改时间，并写入
     def __download(self, ftp, localfile, remotefile):
