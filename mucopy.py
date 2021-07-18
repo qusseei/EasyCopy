@@ -169,8 +169,9 @@ class MUCopy:
                     exit()
             lwxj = [
                 'e:\jd1awxj', 'e:\jd1awxj\images', 'e:\jd1awxj\ini',
-                'e:\jd1awxj\netmap'
+                'e:\jd1awxj\\netmap'
             ]
+            #排除指定目录
             if root in lwxj or root[:-2] in lwxj:
                 for file in files:
                     self.__ccopy(root, file)
@@ -182,7 +183,6 @@ class MUCopy:
                         if s1 in file or (s2 in file
                                           and not ('1' + s2) in file):
                             self.__ccopy(root, file)
-
 
     #遍历并复制LOG数据
     def __copylog(self):
@@ -196,14 +196,15 @@ class MUCopy:
                     print(err)
                     system('pause')
                     exit()
-            #遍历文件并判断日期下载文件
             llog = ['e:\mylogserver\Data', 'e:\mylogserver\Log']
+            #排除指定目录
             if root in llog:
                 print(root)
                 for file in files:
                     for s0 in self.mula:
                         if s0 in file:
                             self.__ccopy(root, file)
+            #遍历文件并判断日期下载文件
             else:
                 for file in files:
                     self.__ccopy(root, file)
@@ -219,15 +220,6 @@ class MUCopy:
             print('FAILED COPY %s ' % temp)
             system('pause')
             exit()
-
-    #解压缩软件到相应目录
-    def __unrar(self):
-        system('start winrar x -y -ikbc -inul %s %s' %
-               (path.join(self.mudir, 'JD1AWXJ',
-                          '*W*.RAR'), path.join(self.mudir, 'JD1AWXJ')))
-        system('start winrar x -y -ikbc -inul %s %s' %
-               (path.join(self.mudir, 'MYLOGSERVER',
-                          '*LOG*.RAR'), path.join(self.mudir, 'MYLOGSERVER')))
 
 
 #FTP类，根据IP、日期远程下载维修机回放和日志
@@ -251,64 +243,101 @@ class MUFtp:
             print(ftp.getwelcome())
             #调用其他函数，保证mudir值在下载完毕后不被修改
             temp = self.mudir
-            self.__dlsoft(ftp, ip)
-            self.__traverse(ftp)
-            self.__unrar()
+            self.__getstationame(ftp, ip)
+            self.__rtwxj(ftp, 'jd1awxj')
+            ftp.cwd('..')
+            self.__rtmylog(ftp, 'mylogserver')
             self.mudir = temp
-            ftp.quit()
+            try:
+                ftp.quit()
+            except Exception as err:
+                print(err)
 
-    #下载维修机和日志软件包
-    def __dlsoft(self, ftp, ip):
-        #生成wxj、log文件列表
+    def __rtwxj(self, ftp, dic):
+        ftp.cwd(dic)
+        filelist = []
+        ftp.retrlines('LIST', filelist.append)
+        ss = ftp.pwd().replace('/', '\\')
+        makedirs(path.join(self.mudir, ss[1:]))
+        for f in filelist:
+            if f.startswith('d'):
+                if f[55:] == '.':
+                    pass
+                elif f[55:] == '..':
+                    pass
+                else:
+                    self.__rtwxj(ftp, f[55:])
+                    ftp.cwd('..')
+            elif f.startswith('-'):
+                ll = [
+                    '\jd1awxj', '\jd1awxj\images', '\jd1awxj\ini',
+                    '\jd1awxj\\netmap'
+                ]
+                f = f[55:]
+                if ss in ll or ss[:-2] in ll:
+                    localfile = path.join(self.mudir, ss[1:], f)
+                    remotefile = 'RETR ' + path.join(ss, f)
+                    self.__download(ftp, localfile, remotefile)
+                else:
+                    for s1, s2 in zip(self.mulb, self.mulc):
+                        #防止1_1、2_1匹配到11_1、12_1
+                        if s1 in f or (s2 in f and not ('1' + s2) in f):
+                            localfile = path.join(self.mudir, ss[1:], f)
+                            remotefile = 'RETR ' + path.join(ss, f)
+                            self.__download(ftp, localfile, remotefile)
+
+    def __rtmylog(self, ftp, dic):
+        ftp.cwd(dic)
+        filelist = []
+        ftp.retrlines('LIST', filelist.append)
+        ss = ftp.pwd().replace('/', '\\')
+        makedirs(path.join(self.mudir, ss[1:]))
+        for f in filelist:
+            if f.startswith('d'):
+                if f[55:] == '.':
+                    pass
+                elif f[55:] == '..':
+                    pass
+                else:
+                    self.__rtmylog(ftp, f[55:])
+                    ftp.cwd('..')
+            elif f.startswith('-'):
+                ll = ['\mylogserver\Data', '\mylogserver\Log']
+                f = f[55:]
+                if ss in ll:
+                    for s0 in self.mula:
+                        if s0 in f:
+                            localfile = path.join(self.mudir, ss[1:], f)
+                            remotefile = 'RETR ' + path.join(ss, f)
+                            self.__download(ftp, localfile, remotefile)
+                else:
+                    localfile = path.join(self.mudir, ss[1:], f)
+                    remotefile = 'RETR ' + path.join(ss, f)
+                    self.__download(ftp, localfile, remotefile)
+
+    def __getstationame(self, ftp, ip):
         wxjnlst = ftp.nlst('jd1awxj')
-        mylognlst = ftp.nlst('mylogserver')
-        #返回空列表就退出程序
-        if (not wxjnlst) or (not mylognlst):
-            print('ERROR, NO DATA UNDER THE REMOTE FOLDER')
-            system('pause')
-            exit()
-        #默认站名软件为空
-        wxjsoftname = ''
-        #遍历wxj文件列表，返回wxj软件名称，多个压缩包只返回第一个
-        for ele in self.__searchname(wxjnlst):
-            if 'MW' in ele or 'WX' in ele:
-                wxjsoftname = ele
-                break
-        #如果返回wxj站名软件不为空
-        if not wxjsoftname is '':
-            #生成包含站名、IP的新mudir
-            self.mudir = path.join(self.mudir, wxjsoftname[0:3] + '_' + ip)
-            #新建wxj、log下各文件夹
-            self.__newfile(self.mudir)
-            #下载该软件
-            q0 = path.join(self.mudir, self.mudir, 'JD1AWXJ', wxjsoftname)
-            q1 = 'RETR ' + path.join('JD1AWXJ', wxjsoftname)
-            self.__download(ftp, q0, q1)
-        #返回wxj站名软件为空
+        if wxjnlst:
+            #默认站名软件为空
+            wxjsoftname = ''
+            #遍历wxj文件列表，返回wxj软件名称，多个压缩包只返回第一个
+            for ele in self.__searchname(wxjnlst):
+                if 'MW' in ele or 'WX' in ele:
+                    wxjsoftname = ele
+                    break
+            #如果返回wxj站名软件不为空
+            if not wxjsoftname is '':
+                #生成包含站名、IP的新mudir
+                self.mudir = path.join(self.mudir, wxjsoftname[0:3] + '_' + ip)
+            #返回wxj站名软件为空
+            else:
+                #默认名字'ABCMW001.RAR'
+                wxjsoftname = 'ABCMW001.RAR'
+                #生成包含站名、IP的新mudir
+                self.mudir = path.join(self.mudir, wxjsoftname[0:3] + '_' + ip)
+                print('NO WXJ SOFT,DEFAULT NAME ABC')
         else:
-            #默认名字'ABCMW001.RAR'
-            wxjsoftname = 'ABCMW001.RAR'
-            #生成包含站名、IP的新mudir
-            self.mudir = path.join(self.mudir, wxjsoftname[0:3] + '_' + ip)
-            #新建wxj、log下各文件夹
-            self.__newfile(self.mudir)
-            print('NO WXJ SOFT,DEFAULT NAME ABC')
-        #默认log软件为空
-        logsoftname = ''
-        #遍历log文件列表，返回wxj软件名称，多个压缩包只返回第一个
-        for ele in self.__searchname(mylognlst):
-            if 'LOG' in ele:
-                logsoftname = ele
-                break
-        #如果返回log站名软件不为空
-        if not logsoftname is '':
-            #下载该软件
-            q2 = path.join(self.mudir, self.mudir, 'MYLOGSERVER', logsoftname)
-            q3 = 'RETR ' + path.join('MYLOGSERVER', logsoftname)
-            self.__download(ftp, q2, q3)
-        #返回log站名软件为空
-        else:
-            print('NO LOG SOFT')
+            ftp.quit()
 
     #遍历列表，返回以RAR为后缀的文件名
     def __searchname(self, list):
@@ -318,22 +347,6 @@ class MUFtp:
             if ele.endswith('.RAR'):
                 templist.append(ele)
         return templist
-
-    #创建wxj、log下空文件夹
-    def __newfile(self, newpath):
-        try:
-            makedirs(path.join(self.mudir, newpath, 'jd1awxj', 'replays'))
-            makedirs(path.join(self.mudir, newpath, 'jd1awxj', 'doginfo'))
-            makedirs(path.join(self.mudir, newpath, 'jd1awxj', 'sysinfo'))
-            makedirs(path.join(self.mudir, newpath, 'jd1awxj', 'alarms'))
-            makedirs(path.join(self.mudir, newpath, 'jd1awxj', 'button'))
-            makedirs(path.join(self.mudir, newpath, 'jd1awxj', 'errors'))
-            makedirs(path.join(self.mudir, newpath, 'mylogserver', 'Data'))
-            makedirs(path.join(self.mudir, newpath, 'mylogserver', 'Log'))
-        except Exception as err:
-            print(err)
-            system('pause')
-            exit()
 
     #FTP下载函数，缓冲区1024，二进制方式读写,获取文件原始修改时间，并写入
     def __download(self, ftp, localfile, remotefile):
@@ -358,70 +371,6 @@ class MUFtp:
             utime(localfile, (a_time, m_time))
         except Exception as err:
             pass
-
-    #遍历各文件夹并下载
-    def __traverse(self, ftp):
-        #构造列表
-        ftpnlst = [
-            ftp.nlst('mylogserver/Data'),
-            ftp.nlst('mylogserver/Log'),
-            ftp.nlst('jd1awxj/doginfo'),
-            ftp.nlst('jd1awxj/sysinfo'),
-            ftp.nlst('jd1awxj/alarms'),
-            ftp.nlst('jd1awxj/button'),
-            ftp.nlst('jd1awxj/errors'),
-            ftp.nlst('jd1awxj/replays')
-        ]
-        #遍历文件列表，下载在指定日期的文件
-        for Data, Log, doginfo, sysinfo, alarms, button, errors, replays in zip_longest(
-                *ftpnlst):
-            for s0, s1, s2 in zip(self.mula, self.mulb, self.mulc):
-                if Data:
-                    if s0 in Data:
-                        self.__dllog(ftp, Data, 'Data')
-                if Log:
-                    if s0 in Log:
-                        self.__dllog(ftp, Log, 'Log')
-                if doginfo:
-                    if s1 in doginfo:
-                        self.__dlwxj(ftp, doginfo, 'doginfo')
-                if sysinfo:
-                    if s1 in sysinfo:
-                        self.__dlwxj(ftp, sysinfo, 'sysinfo')
-                if alarms:
-                    #防止1_1、2_1匹配到11_1、12_1
-                    if s2 in alarms and not ('1' + s2) in alarms:
-                        self.__dlwxj(ftp, alarms, 'alarms')
-                if button:
-                    if s2 in button and not ('1' + s2) in button:
-                        self.__dlwxj(ftp, button, 'button')
-                if errors:
-                    if s2 in errors and not ('1' + s2) in errors:
-                        self.__dlwxj(ftp, errors, 'errors')
-                if replays:
-                    if s2 in replays and not ('1' + s2) in replays:
-                        self.__dlwxj(ftp, replays, 'replays')
-
-    #分别指定wxj的下载位置
-    def __dlwxj(self, ftp, file, type):
-        ra = path.join(self.mudir, 'JD1AWXJ', type, file)
-        rb = 'RETR ' + path.join('JD1AWXJ\\', type, file)
-        self.__download(ftp, ra, rb)
-
-    #分别指定log的下载位置
-    def __dllog(self, ftp, file, type):
-        ra = path.join(self.mudir, 'MYLOGSERVER', type, file)
-        rb = 'RETR ' + path.join('MYLOGSERVER\\', type, file)
-        self.__download(ftp, ra, rb)
-
-    #解压软件到指定位置
-    def __unrar(self):
-        system('start winrar x -y -ikbc -inul %s %s' %
-               (path.join(self.mudir, 'JD1AWXJ',
-                          '*W*.RAR'), path.join(self.mudir, 'JD1AWXJ')))
-        system('start winrar x -y -ikbc -inul %s %s' %
-               (path.join(self.mudir, 'MYLOGSERVER',
-                          '*LOG*.RAR'), path.join(self.mudir, 'MYLOGSERVER')))
 
 
 #MUJson类实例化并调用函数
