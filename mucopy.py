@@ -203,7 +203,6 @@ class MUCopy:
             llog = ['e:\mylogserver\Data', 'e:\mylogserver\Log']
             #排除指定目录
             if root in llog:
-                print(root)
                 for file in files:
                     for s0 in self.mula:
                         if s0 in file:
@@ -245,6 +244,7 @@ class MUFtp:
     #建立对应IP的FTP连接，调用其他函数
     def __dlfromip(self, ip):
         with FTP(ip, 'Anonymous', 'jd1awxj', timeout=10) as ftp:
+            ftp.encoding='GB18030'
             print(ftp.getwelcome())
             #调用其他函数，保证mudir值在下载完毕后不被修改
             temp = self.mudir
