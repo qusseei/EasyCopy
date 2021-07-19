@@ -1,24 +1,23 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
-from json import load
-from glob import glob
-from ftplib import FTP
-from shutil import copy2
-from re import compile, search
-from time import strptime, mktime, time
-from datetime import datetime, timedelta
 from os import system, getcwd, makedirs, walk, utime, path
+from datetime import datetime, timedelta
+from json import load
+from ftplib import FTP
+from glob import glob
+from shutil import copy2
+from time import strptime, mktime, time
 
 
 #Json类，读取mucopy.json,检查该json,生成构造日期list
 class MUJson:
     #初始化
     def __init__(self):
-        #mudir F:\  musa 2021-07-08 musb 2021_07_08 musc 5_9、5_10
+        #mudir F:\  mula 2021-07-08 mulb 2021_07_08 mulc 5_9、5_10
         self.mudir = getcwd()
         self.mudata = {}
         self.muremote = '0'
-        self.musa, self.musb, self.musc = [set() for i in range(3)]
+        self.mula, self.mulb, self.mulc = [[] for i in range(3)]
 
     def mujson(self):
         print('START READ MUCOPY.JSON')
@@ -108,35 +107,34 @@ class MUJson:
         #比较起始日期，如果时间早晚不对，则交换起始日期
         if (begindate > enddate):
             begindate, enddate = enddate, begindate
-        #遍历日期，生成列表musa 2021-07-08
+        #遍历日期，生成列表mula 2021-07-08
         while begindate <= enddate:
             date_str = begindate.strftime('%Y-%m-%d')
-            self.musa.add(date_str)
+            self.mula.append(date_str)
             begindate += timedelta(days=1)
-        #列表musa生成musb 2021_07_08
-        for date in self.musa:
-            self.musb.add(date.replace('-', '_'))
-        #生成musc 5_9、5_10、5_11
-        for date in self.musb:
+        #列表mula生成mulb 2021_07_08
+        for date in self.mula:
+            self.mulb.append(date.replace('-', '_'))
+        #生成mulc 5_9、5_10、5_11
+        for date in self.mulb:
             if (date[5] == '0'):
                 if (date[8] == '0'):
-                    self.musc.add(date[-4:-2] + date[-1:])
+                    self.mulc.append(date[-4:-2] + date[-1:])
                 else:
-                    self.musc.add(date[-4:])
+                    self.mulc.append(date[-4:])
             else:
                 if (date[8] == '0'):
-                    self.musc.add(date[-5:-2] + date[-1:])
+                    self.mulc.append(date[-5:-2] + date[-1:])
                 else:
-                    self.musc.add(date[-5:])
+                    self.mulc.append(date[-5:])
 
 
 #Copy类，根据日期复制维修机回放和日志
 class MUCopy:
     #初始化，传入路径、列表la、lb、lc
-    def __init__(self, mudir, musa, musb, musc):
+    def __init__(self, mudir, mula, mulb, mulc):
         self.mudir = mudir
-        self.musa, self.musb, self.musc = musa, musb, musc
-        self.pattern = compile(r'\d{0,4}[-_]{0,1}\d{1,2}[-_]{1}\d{1,2}')
+        self.mula, self.mulb, self.mulc = mula, mulb, mulc
 
     #主函数，调用其他函数
     def mucopy(self):
@@ -158,10 +156,6 @@ class MUCopy:
 
     #遍历并复制维修机数据
     def __copywxj(self):
-        swxj = {
-            'e:\jd1awxj', 'e:\jd1awxj\images', 'e:\jd1awxj\ini',
-            'e:\jd1awxj\\netmap'
-        }
         #遍历jd1awxj
         for root, dirs, files in walk('e:\\jd1awxj'):
             #创建root
@@ -172,20 +166,30 @@ class MUCopy:
                     print(err)
                     system('pause')
                     exit()
+            lwxj = [
+                'e:\jd1awxj', 'e:\jd1awxj\images', 'e:\jd1awxj\ini',
+                'e:\jd1awxj\\netmap'
+            ]
             #指定目录，直接下载
-            if root in swxj or root[:-2] in swxj:
+            if root in lwxj or root[:-2] in lwxj:
                 for file in files:
                     self.__ccopy(root, file)
-            #其他目录，遍历文件剥离出日期并判断是否在列表中，下载文件
+            #其他目录，遍历文件并判断日期下载文件
             else:
                 for file in files:
-                    newstr = self.pattern.search(file).group()
-                    if newstr in self.musb or newstr in self.musc:
-                        self.__ccopy(root, file)
+                    for s1, s2 in zip(self.mulb, self.mulc):
+                        #选出日期部分，对比指定日期，防止1_1匹配到1_10、11_1、11_11;防止2_2匹配到2_20、12_2、12_20
+                        newfile = ''
+                        for ele in file:
+                            if ele.isdigit() or ele == '_':
+                                newfile += ele
+                        #日期匹配合适，下载，并进入
+                        if s1 in newfile or s2 == newfile:
+                            self.__ccopy(root, file)
+                            break
 
     #遍历并复制LOG数据
     def __copylog(self):
-        slog = {'e:\mylogserver\Data', 'e:\mylogserver\Log'}
         #遍历mylogserver
         for root, dirs, files in walk('e:\\mylogserver'):
             #创建root
@@ -196,12 +200,15 @@ class MUCopy:
                     print(err)
                     system('pause')
                     exit()
-            #遍历文件，判断日期
-            if root in slog:
+            llog = ['e:\mylogserver\Data', 'e:\mylogserver\Log']
+            #排除指定目录
+            if root in llog:
                 for file in files:
-                    if self.pattern.search(file).group() in self.musa:
-                        self.__ccopy(root, file)
-            #其他文件直接下载
+                    for s0 in self.mula:
+                        if s0 in file:
+                            self.__ccopy(root, file)
+                            break
+            #遍历文件并判断日期下载文件
             else:
                 for file in files:
                     self.__ccopy(root, file)
@@ -222,11 +229,10 @@ class MUCopy:
 #FTP类，根据IP、日期远程下载维修机回放和日志
 class MUFtp:
     #初始化，传入路径、jsondata、列表la、lb、lc等值
-    def __init__(self, mudir, mudata, musa, musb, musc):
+    def __init__(self, mudir, mudata, mula, mulb, mulc):
         self.mudir = mudir
         self.mudata = mudata
-        self.musa, self.musb, self.musc = musa, musb, musc
-        self.pattern = compile(r'\d{0,4}[-_]{0,1}\d{1,2}[-_]{1}\d{1,2}')
+        self.mula, self.mulb, self.mulc = mula, mulb, mulc
 
     #主函数，遍历ip下载
     def muftp(self):
@@ -238,7 +244,7 @@ class MUFtp:
     #建立对应IP的FTP连接，调用其他函数
     def __dlfromip(self, ip):
         with FTP(ip, 'Anonymous', 'jd1awxj', timeout=10) as ftp:
-            ftp.encoding = 'GB18030'
+            ftp.encoding='GB18030'
             print(ftp.getwelcome())
             #调用其他函数，保证mudir值在下载完毕后不被修改
             temp = self.mudir
@@ -298,21 +304,27 @@ class MUFtp:
                     self.__rtwxj(ftp, f[55:])
                     ftp.cwd('..')
             elif f.startswith('-'):
-                swxj = {
+                ll = [
                     '\jd1awxj', '\jd1awxj\images', '\jd1awxj\ini',
                     '\jd1awxj\\netmap'
-                }
+                ]
                 f = f[55:]
-                if ss in swxj or ss[:-2] in swxj:
+                if ss in ll or ss[:-2] in ll:
                     localfile = path.join(self.mudir, ss[1:], f)
                     remotefile = 'RETR ' + path.join(ss, f)
                     self.__download(ftp, localfile, remotefile)
                 else:
-                    newstr = self.pattern.search(f).group()
-                    if newstr in self.musb or newstr in self.musc:
-                        localfile = path.join(self.mudir, ss[1:], f)
-                        remotefile = 'RETR ' + path.join(ss, f)
-                        self.__download(ftp, localfile, remotefile)
+                    for s1, s2 in zip(self.mulb, self.mulc):
+                        #防止1_1匹配到1_10、11_1、11_11;防止2_2匹配到2_20、12_2、12_20
+                        newfile = ''
+                        for ele in f:
+                            if ele.isdigit() or ele == '_':
+                                newfile += ele
+                        if s1 in newfile or s2 == newfile:
+                            localfile = path.join(self.mudir, ss[1:], f)
+                            remotefile = 'RETR ' + path.join(ss, f)
+                            self.__download(ftp, localfile, remotefile)
+                            break
 
     def __rtmylog(self, ftp, dic):
         ftp.cwd(dic)
@@ -330,13 +342,15 @@ class MUFtp:
                     self.__rtmylog(ftp, f[55:])
                     ftp.cwd('..')
             elif f.startswith('-'):
-                slog = {'\mylogserver\Data', '\mylogserver\Log'}
+                ll = ['\mylogserver\Data', '\mylogserver\Log']
                 f = f[55:]
-                if ss in slog:
-                    if self.pattern.search(f).group() in self.musa:
-                        localfile = path.join(self.mudir, ss[1:], f)
-                        remotefile = 'RETR ' + path.join(ss, f)
-                        self.__download(ftp, localfile, remotefile)
+                if ss in ll:
+                    for s0 in self.mula:
+                        if s0 in f:
+                            localfile = path.join(self.mudir, ss[1:], f)
+                            remotefile = 'RETR ' + path.join(ss, f)
+                            self.__download(ftp, localfile, remotefile)
+                            break
                 else:
                     localfile = path.join(self.mudir, ss[1:], f)
                     remotefile = 'RETR ' + path.join(ss, f)
@@ -370,10 +384,10 @@ Mujson = MUJson()
 Mujson.mujson()
 
 #MUFtp类实例化并调用函数
-Muftp = MUFtp(Mujson.mudir, Mujson.mudata, Mujson.musa, Mujson.musb,
-              Mujson.musc)
+Muftp = MUFtp(Mujson.mudir, Mujson.mudata, Mujson.mula, Mujson.mulb,
+              Mujson.mulc)
 #MUCopy类实例化并调用函数
-Mucopy = MUCopy(Mujson.mudir, Mujson.musa, Mujson.musb, Mujson.musc)
+Mucopy = MUCopy(Mujson.mudir, Mujson.mula, Mujson.mulb, Mujson.mulc)
 
 #判断是否需要远程,'0':本地,'1':远程,'2':远程+本地,
 if Mujson.muremote is '0':
