@@ -253,10 +253,7 @@ class MUFtp:
             ftp.cwd('..')
             self.__rtmylog(ftp, 'mylogserver')
             self.mudir = temp
-            try:
-                ftp.quit()
-            except Exception as err:
-                print(err)
+            ftp.quit()
 
     def __getstationame(self, ftp, ip):
         wxjnlst = ftp.nlst('jd1awxj')
@@ -362,14 +359,9 @@ class MUFtp:
     #FTP下载函数，缓冲区1024，二进制方式读写,获取文件原始修改时间，并写入
     def __download(self, ftp, localfile, remotefile):
         try:
+            #打开文件，下载
             with open(localfile, 'wb') as fp:
                 ftp.retrbinary(remotefile, fp.write, 1024)
-            print('SUCCESS DOWNLOAD %s ' % (remotefile[4:]))
-        except Exception as err:
-            self.__download(ftp, localfile, remotefile)
-            print(err)
-            print('FAILED DOWNLOAD %s ' % (remotefile))
-        try:
             #获取ftp上文件原始修改时间字符串
             m_time = ftp.sendcmd('MDTM ' + remotefile[5:])[4:]
             #字符串转为time对象
@@ -380,8 +372,11 @@ class MUFtp:
             a_time = int(time())
             #设置文件的访问时间和修改时间
             utime(localfile, (a_time, m_time))
+            print('SUCCESS DOWNLOAD %s ' % (remotefile[4:]))
         except Exception as err:
-            pass
+            self.__download(ftp, localfile, remotefile)
+            print(err)
+            print('FAILED DOWNLOAD %s ' % (remotefile))
 
 
 #MUJson类实例化并调用函数
