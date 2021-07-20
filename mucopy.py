@@ -155,24 +155,19 @@ class MUCopy:
     def __getstationame(self):
         try:
             stationame = glob(path.join('E:\\jd1awxj', '*w*.RAR'))[0][11:14]
-            self.mudir = path.join(self.mudir, stationame)
         except Exception as err:
             print(err)
             print('CAN NOT FIND JA1AWXJ SOFT, SET DEFAULT NAME "ABC"')
-            self.mudir = path.join(self.mudir, 'ABC')
+            stationame = 'UNKNOWNNAME'
+        finally:
+            self.mudir = path.join(self.mudir, stationame)
 
     #遍历并复制维修机数据
     def __copywxj(self):
         #遍历jd1awxj
         for root, dirs, files in walk('e:\\jd1awxj'):
             #创建root
-            if root:
-                try:
-                    makedirs(path.join(self.mudir, root[3:]))
-                except Exception as err:
-                    print(err)
-                    system('pause')
-                    exit()
+            makedirs(path.join(self.mudir, root[3:]), exist_ok=True)
             #指定目录，直接下载
             if root in self.swxj or root[:-2] in self.swxj:
                 for file in files:
@@ -189,13 +184,7 @@ class MUCopy:
         #遍历mylogserver
         for root, dirs, files in walk('e:\\mylogserver'):
             #创建root
-            if root:
-                try:
-                    makedirs(path.join(self.mudir, root[3:]))
-                except Exception as err:
-                    print(err)
-                    system('pause')
-                    exit()
+            makedirs(path.join(self.mudir, root[3:]), exist_ok=True)
             #遍历文件，判断日期
             if root in self.slog:
                 for file in files:
@@ -208,13 +197,14 @@ class MUCopy:
 
     #拼接目录和文件，确定下载路径、复制文件
     def __ccopy(self, root, file):
+        src = path.join(root, file)
+        dst = path.join(self.mudir + root[2:], file)
         try:
-            temp = path.join(root, file)
-            copy2(temp, path.join(self.mudir + root[2:], file))
-            print('SUCCESS COPY %s ' % temp)
+            copy2(src, dst)
+            print('SUCCESS COPY %s ' % src)
         except Exception as err:
             print(err)
-            print('FAILED COPY %s ' % temp)
+            print('FAILED COPY %s ' % src)
             system('pause')
             exit()
 
@@ -291,7 +281,7 @@ class MUFtp:
         filelist = []
         ftp.retrlines('LIST', filelist.append)
         ss = ftp.pwd().replace('/', '\\')
-        makedirs(path.join(self.mudir, ss[1:]))
+        makedirs(path.join(self.mudir, ss[1:]), exist_ok=True)
         for file in filelist:
             if file.startswith('d'):
                 file = file[55:]
@@ -320,7 +310,7 @@ class MUFtp:
         filelist = []
         ftp.retrlines('LIST', filelist.append)
         ss = ftp.pwd().replace('/', '\\')
-        makedirs(path.join(self.mudir, ss[1:]))
+        makedirs(path.join(self.mudir, ss[1:]), exist_ok=True)
         for file in filelist:
             if file.startswith('d'):
                 if file[55:] == '.':
