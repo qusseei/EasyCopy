@@ -1,13 +1,14 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
-from json import load
-from glob import glob
-from ftplib import FTP
-from shutil import copy2
-from re import compile, search
-from time import strptime, mktime, time
 from datetime import datetime, timedelta
-from os import system, getcwd, makedirs, walk, utime, path
+from ftplib import FTP
+from glob import glob
+from json import load
+from os import system, getcwd, makedirs, walk, utime
+from os.path import join
+from re import compile, search
+from shutil import copy2
+from time import strptime, mktime, time
 
 
 #Json类，读取mucopy.json,检查该json,生成构造日期list
@@ -93,9 +94,9 @@ class MUJson:
     #读取mucopy.json，更新mudir的值
     def __getjson(self):
         nowtime = datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S')
-        with open(path.join(self.mudir, 'mucopy.json')) as f:
+        with open(join(self.mudir, 'mucopy.json')) as f:
             self.mudata = load(f)
-            self.mudir = path.join(self.mudir, nowtime)
+            self.mudir = join(self.mudir, nowtime)
 
     #检查ip地址的合理性
     def __is_ipv4(ip: str) -> bool:
@@ -154,20 +155,20 @@ class MUCopy:
     #得到E盘维修机下站名缩写，添加至mudir后面
     def __getstationame(self):
         try:
-            stationame = glob(path.join('E:\\jd1awxj', '*w*.RAR'))[0][11:14]
+            stationame = glob(join('E:\\jd1awxj', '*w*.RAR'))[0][11:14]
         except Exception as err:
             print(err)
             print('CAN NOT FIND JA1AWXJ SOFT, SET DEFAULT NAME "ABC"')
             stationame = 'UNKNOWNNAME'
         finally:
-            self.mudir = path.join(self.mudir, stationame)
+            self.mudir = join(self.mudir, stationame)
 
     #遍历并复制维修机数据
     def __copywxj(self):
         #遍历jd1awxj
         for root, dirs, files in walk('e:\\jd1awxj'):
             #创建root
-            makedirs(path.join(self.mudir, root[3:]), exist_ok=True)
+            makedirs(join(self.mudir, root[3:]), exist_ok=True)
             #指定目录，直接下载
             if root in self.swxj or root[:-2] in self.swxj:
                 for file in files:
@@ -175,7 +176,7 @@ class MUCopy:
             #其他目录，遍历文件剥离出日期并判断是否在列表中，下载文件
             else:
                 for file in files:
-                    result = self.pattern.search(file).group()
+                    result = search(self.pattern, file).group()
                     if result in self.musb or result in self.musc:
                         self.__ccopy(root, file)
 
@@ -184,11 +185,11 @@ class MUCopy:
         #遍历mylogserver
         for root, dirs, files in walk('e:\\mylogserver'):
             #创建root
-            makedirs(path.join(self.mudir, root[3:]), exist_ok=True)
+            makedirs(join(self.mudir, root[3:]), exist_ok=True)
             #遍历文件，判断日期
             if root in self.slog:
                 for file in files:
-                    result = self.pattern.search(file).group()
+                    result = search(self.pattern, file).group()
                     if result in self.musa:
                         self.__ccopy(root, file)
             #其他文件直接下载
@@ -198,8 +199,8 @@ class MUCopy:
 
     #拼接目录和文件，确定下载路径、复制文件
     def __ccopy(self, root, file):
-        src = path.join(root, file)
-        dst = path.join(self.mudir + root[2:], file)
+        src = join(root, file)
+        dst = join(self.mudir + root[2:], file)
         try:
             copy2(src, dst)
             print('SUCCESS COPY %s ' % src)
@@ -255,13 +256,13 @@ class MUFtp:
             #如果返回wxj站名软件不为空
             if not wxjsoftname is '':
                 #生成包含站名、IP的新mudir
-                self.mudir = path.join(self.mudir, wxjsoftname[0:3] + '_' + ip)
+                self.mudir = join(self.mudir, wxjsoftname[0:3] + '_' + ip)
             #返回wxj站名软件为空
             else:
                 #默认名字'ABCMW001.RAR'
                 wxjsoftname = 'ABCMW001.RAR'
                 #生成包含站名、IP的新mudir
-                self.mudir = path.join(self.mudir, wxjsoftname[0:3] + '_' + ip)
+                self.mudir = join(self.mudir, wxjsoftname[0:3] + '_' + ip)
                 print('NO WXJ SOFT,DEFAULT NAME ABC')
         else:
             ftp.quit()
@@ -283,7 +284,7 @@ class MUFtp:
         filelist = []
         ftp.retrlines('LIST', filelist.append)
         ss = ftp.pwd().replace('/', '\\')
-        makedirs(path.join(self.mudir, ss[1:]), exist_ok=True)
+        makedirs(join(self.mudir, ss[1:]), exist_ok=True)
         for file in filelist:
             if file.startswith('d'):
                 file = file[55:]
@@ -297,14 +298,14 @@ class MUFtp:
             elif file.startswith('-'):
                 file = file[55:]
                 if ss in self.swxj or ss[:-2] in self.swxj:
-                    localfile = path.join(self.mudir, ss[1:], file)
-                    remotefile = 'RETR ' + path.join(ss, file)
+                    localfile = join(self.mudir, ss[1:], file)
+                    remotefile = 'RETR ' + join(ss, file)
                     self.__download(ftp, localfile, remotefile)
                 else:
-                    result = self.pattern.search(file).group()
+                    result = search(self.pattern, file).group()
                     if result in self.musb or result in self.musc:
-                        localfile = path.join(self.mudir, ss[1:], file)
-                        remotefile = 'RETR ' + path.join(ss, file)
+                        localfile = join(self.mudir, ss[1:], file)
+                        remotefile = 'RETR ' + join(ss, file)
                         self.__download(ftp, localfile, remotefile)
 
     def __rtmylog(self, ftp, dic):
@@ -312,7 +313,7 @@ class MUFtp:
         filelist = []
         ftp.retrlines('LIST', filelist.append)
         ss = ftp.pwd().replace('/', '\\')
-        makedirs(path.join(self.mudir, ss[1:]), exist_ok=True)
+        makedirs(join(self.mudir, ss[1:]), exist_ok=True)
         for file in filelist:
             if file.startswith('d'):
                 if file[55:] == '.':
@@ -325,14 +326,14 @@ class MUFtp:
             elif file.startswith('-'):
                 file = file[55:]
                 if ss in self.slog:
-                    result = self.pattern.search(file).group()
+                    result = search(self.pattern, file).group()
                     if result in self.musa:
-                        localfile = path.join(self.mudir, ss[1:], file)
-                        remotefile = 'RETR ' + path.join(ss, file)
+                        localfile = join(self.mudir, ss[1:], file)
+                        remotefile = 'RETR ' + join(ss, file)
                         self.__download(ftp, localfile, remotefile)
                 else:
-                    localfile = path.join(self.mudir, ss[1:], file)
-                    remotefile = 'RETR ' + path.join(ss, file)
+                    localfile = join(self.mudir, ss[1:], file)
+                    remotefile = 'RETR ' + join(ss, file)
                     self.__download(ftp, localfile, remotefile)
 
     #FTP下载函数，缓冲区1024，二进制方式读写,获取文件原始修改时间，并写入
