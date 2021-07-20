@@ -45,7 +45,7 @@ class MUJson:
         self.__geteveryday(begindate, enddate)
         #验证remote的合理性
         try:
-            if self.mudata['remote'] in ('0', '1', '2'):
+            if self.mudata['remote'] in {'0', '1', '2'}:
                 pass
             else:
                 print('ERROR MUCOPT.JSON REMOTE')
@@ -60,7 +60,7 @@ class MUJson:
         if self.mudata['remote'] is '1':
             self.muremote = '1'
             #删除对应的键值对
-            for k in ['starttime', 'endtime', 'remote']:
+            for k in {'starttime', 'endtime', 'remote'}:
                 self.mudata.pop(k)
             if not self.mudata:
                 for ele in self.mudata:
@@ -75,7 +75,7 @@ class MUJson:
         elif self.mudata['remote'] is '2':
             self.muremote = '2'
             #删除对应的键值对
-            for k in ['starttime', 'endtime', 'remote']:
+            for k in {'starttime', 'endtime', 'remote'}:
                 self.mudata.pop(k)
             if not self.mudata:
                 for ele in self.mudata:
@@ -175,8 +175,8 @@ class MUCopy:
             #其他目录，遍历文件剥离出日期并判断是否在列表中，下载文件
             else:
                 for file in files:
-                    newstr = self.pattern.search(file).group()
-                    if newstr in self.musb or newstr in self.musc:
+                    result = self.pattern.search(file).group()
+                    if result in self.musb or result in self.musc:
                         self.__ccopy(root, file)
 
     #遍历并复制LOG数据
@@ -188,7 +188,8 @@ class MUCopy:
             #遍历文件，判断日期
             if root in self.slog:
                 for file in files:
-                    if self.pattern.search(file).group() in self.musa:
+                    result = self.pattern.search(file).group()
+                    if result in self.musa:
                         self.__ccopy(root, file)
             #其他文件直接下载
             else:
@@ -205,8 +206,6 @@ class MUCopy:
         except Exception as err:
             print(err)
             print('FAILED COPY %s ' % src)
-            system('pause')
-            exit()
 
 
 #FTP类，根据IP、日期远程下载维修机回放和日志
@@ -244,11 +243,11 @@ class MUFtp:
             ftp.quit()
 
     def __getstationame(self, ftp, ip):
-        wxjnlst = ftp.nlst('jd1awxj')
+        wxjnlst = set(ftp.nlst('jd1awxj'))
         if wxjnlst:
             #默认站名软件为空
             wxjsoftname = ''
-            #遍历wxj文件列表，返回wxj软件名称，多个压缩包只返回第一个
+            #遍历wxj文件列表，返回wxj软件名称，多个压缩包随机返回一个
             for ele in self.__searchname(wxjnlst):
                 if 'MW' in ele or 'WX' in ele:
                     wxjsoftname = ele
@@ -266,15 +265,18 @@ class MUFtp:
                 print('NO WXJ SOFT,DEFAULT NAME ABC')
         else:
             ftp.quit()
+            print('EMPTY FOLDER JD1AWXJ')
+            system('pause')
+            exit()
 
     #遍历列表，返回以RAR为后缀的文件名
-    def __searchname(self, list):
-        templist = []
-        for ele in list:
+    def __searchname(self, sset):
+        tset = set()
+        for ele in sset:
             ele = ele.upper()
             if ele.endswith('.RAR'):
-                templist.append(ele)
-        return templist
+                tset.add(ele)
+        return tset
 
     def __rtwxj(self, ftp, dic):
         ftp.cwd(dic)
@@ -299,8 +301,8 @@ class MUFtp:
                     remotefile = 'RETR ' + path.join(ss, file)
                     self.__download(ftp, localfile, remotefile)
                 else:
-                    newstr = self.pattern.search(file).group()
-                    if newstr in self.musb or newstr in self.musc:
+                    result = self.pattern.search(file).group()
+                    if result in self.musb or result in self.musc:
                         localfile = path.join(self.mudir, ss[1:], file)
                         remotefile = 'RETR ' + path.join(ss, file)
                         self.__download(ftp, localfile, remotefile)
@@ -323,7 +325,8 @@ class MUFtp:
             elif file.startswith('-'):
                 file = file[55:]
                 if ss in self.slog:
-                    if self.pattern.search(file).group() in self.musa:
+                    result = self.pattern.search(file).group()
+                    if result in self.musa:
                         localfile = path.join(self.mudir, ss[1:], file)
                         remotefile = 'RETR ' + path.join(ss, file)
                         self.__download(ftp, localfile, remotefile)
