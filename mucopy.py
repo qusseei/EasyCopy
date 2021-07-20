@@ -137,6 +137,11 @@ class MUCopy:
         self.mudir = mudir
         self.musa, self.musb, self.musc = musa, musb, musc
         self.pattern = compile(r'\d{0,4}[-_]{0,1}\d{1,2}[-_]{1}\d{1,2}')
+        self.slog = {'e:\mylogserver\Data', 'e:\mylogserver\Log'}
+        self.swxj = {
+            'e:\jd1awxj', 'e:\jd1awxj\images', 'e:\jd1awxj\ini',
+            'e:\jd1awxj\\netmap'
+        }
 
     #主函数，调用其他函数
     def mucopy(self):
@@ -158,10 +163,6 @@ class MUCopy:
 
     #遍历并复制维修机数据
     def __copywxj(self):
-        swxj = {
-            'e:\jd1awxj', 'e:\jd1awxj\images', 'e:\jd1awxj\ini',
-            'e:\jd1awxj\\netmap'
-        }
         #遍历jd1awxj
         for root, dirs, files in walk('e:\\jd1awxj'):
             #创建root
@@ -173,7 +174,7 @@ class MUCopy:
                     system('pause')
                     exit()
             #指定目录，直接下载
-            if root in swxj or root[:-2] in swxj:
+            if root in self.swxj or root[:-2] in self.swxj:
                 for file in files:
                     self.__ccopy(root, file)
             #其他目录，遍历文件剥离出日期并判断是否在列表中，下载文件
@@ -185,7 +186,6 @@ class MUCopy:
 
     #遍历并复制LOG数据
     def __copylog(self):
-        slog = {'e:\mylogserver\Data', 'e:\mylogserver\Log'}
         #遍历mylogserver
         for root, dirs, files in walk('e:\\mylogserver'):
             #创建root
@@ -197,7 +197,7 @@ class MUCopy:
                     system('pause')
                     exit()
             #遍历文件，判断日期
-            if root in slog:
+            if root in self.slog:
                 for file in files:
                     if self.pattern.search(file).group() in self.musa:
                         self.__ccopy(root, file)
@@ -227,6 +227,10 @@ class MUFtp:
         self.mudata = mudata
         self.musa, self.musb, self.musc = musa, musb, musc
         self.pattern = compile(r'\d{0,4}[-_]{0,1}\d{1,2}[-_]{1}\d{1,2}')
+        self.slog = {'\mylogserver\Data', '\mylogserver\Log'}
+        self.swxj = {
+            '\jd1awxj', '\jd1awxj\images', '\jd1awxj\ini', '\jd1awxj\\netmap'
+        }
 
     #主函数，遍历ip下载
     def muftp(self):
@@ -288,30 +292,27 @@ class MUFtp:
         ftp.retrlines('LIST', filelist.append)
         ss = ftp.pwd().replace('/', '\\')
         makedirs(path.join(self.mudir, ss[1:]))
-        for f in filelist:
-            if f.startswith('d'):
-                if f[55:] == '.':
+        for file in filelist:
+            if file.startswith('d'):
+                file = file[55:]
+                if file == '.':
                     pass
-                elif f[55:] == '..':
+                elif file == '..':
                     pass
                 else:
-                    self.__rtwxj(ftp, f[55:])
+                    self.__rtwxj(ftp, file)
                     ftp.cwd('..')
-            elif f.startswith('-'):
-                swxj = {
-                    '\jd1awxj', '\jd1awxj\images', '\jd1awxj\ini',
-                    '\jd1awxj\\netmap'
-                }
-                f = f[55:]
-                if ss in swxj or ss[:-2] in swxj:
-                    localfile = path.join(self.mudir, ss[1:], f)
-                    remotefile = 'RETR ' + path.join(ss, f)
+            elif file.startswith('-'):
+                file = file[55:]
+                if ss in self.swxj or ss[:-2] in self.swxj:
+                    localfile = path.join(self.mudir, ss[1:], file)
+                    remotefile = 'RETR ' + path.join(ss, file)
                     self.__download(ftp, localfile, remotefile)
                 else:
-                    newstr = self.pattern.search(f).group()
+                    newstr = self.pattern.search(file).group()
                     if newstr in self.musb or newstr in self.musc:
-                        localfile = path.join(self.mudir, ss[1:], f)
-                        remotefile = 'RETR ' + path.join(ss, f)
+                        localfile = path.join(self.mudir, ss[1:], file)
+                        remotefile = 'RETR ' + path.join(ss, file)
                         self.__download(ftp, localfile, remotefile)
 
     def __rtmylog(self, ftp, dic):
@@ -320,26 +321,25 @@ class MUFtp:
         ftp.retrlines('LIST', filelist.append)
         ss = ftp.pwd().replace('/', '\\')
         makedirs(path.join(self.mudir, ss[1:]))
-        for f in filelist:
-            if f.startswith('d'):
-                if f[55:] == '.':
+        for file in filelist:
+            if file.startswith('d'):
+                if file[55:] == '.':
                     pass
-                elif f[55:] == '..':
+                elif file[55:] == '..':
                     pass
                 else:
-                    self.__rtmylog(ftp, f[55:])
+                    self.__rtmylog(ftp, file[55:])
                     ftp.cwd('..')
-            elif f.startswith('-'):
-                slog = {'\mylogserver\Data', '\mylogserver\Log'}
-                f = f[55:]
-                if ss in slog:
-                    if self.pattern.search(f).group() in self.musa:
-                        localfile = path.join(self.mudir, ss[1:], f)
-                        remotefile = 'RETR ' + path.join(ss, f)
+            elif file.startswith('-'):
+                file = file[55:]
+                if ss in self.slog:
+                    if self.pattern.search(file).group() in self.musa:
+                        localfile = path.join(self.mudir, ss[1:], file)
+                        remotefile = 'RETR ' + path.join(ss, file)
                         self.__download(ftp, localfile, remotefile)
                 else:
-                    localfile = path.join(self.mudir, ss[1:], f)
-                    remotefile = 'RETR ' + path.join(ss, f)
+                    localfile = path.join(self.mudir, ss[1:], file)
+                    remotefile = 'RETR ' + path.join(ss, file)
                     self.__download(ftp, localfile, remotefile)
 
     #FTP下载函数，缓冲区1024，二进制方式读写,获取文件原始修改时间，并写入
