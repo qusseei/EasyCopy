@@ -138,10 +138,10 @@ class MUCopy:
         self.mudir = mudir
         self.musa, self.musb, self.musc = musa, musb, musc
         self.pattern = compile(r'\d{0,4}[-_]?\d{1,2}[-_]{1}\d{1,2}')
-        self.slog = {'e:\mylogserver\Data', 'e:\mylogserver\Log'}
+        self.slog = {'e:\\mylogserver\\Data', 'e:\\mylogserver\\Log'}
         self.swxj = {
-            'e:\jd1awxj', 'e:\jd1awxj\images', 'e:\jd1awxj\ini',
-            'e:\jd1awxj\\netmap'
+            'e:\\jd1awxj', 'e:\\jd1awxj\\images', 'e:\\jd1awxj\\ini',
+            'e:\\jd1awxj\\netmap'
         }
 
     #主函数，调用其他函数
@@ -155,7 +155,7 @@ class MUCopy:
     #得到E盘维修机下站名缩写，添加至mudir后面
     def __getstationame(self):
         try:
-            stationame = glob(join('E:\\jd1awxj', '*w*.RAR'))[0][11:14]
+            stationame = glob(join('e:\\jd1awxj', '*w*.RAR'))[0][11:14]
         except Exception as err:
             print(err)
             print('CAN NOT FIND JA1AWXJ SOFT, SET DEFAULT NAME "ABC"')
@@ -217,9 +217,9 @@ class MUFtp:
         self.mudata = mudata
         self.musa, self.musb, self.musc = musa, musb, musc
         self.pattern = compile(r'\d{0,4}[-_]?\d{1,2}[-_]{1}\d{1,2}')
-        self.slog = {'\mylogserver\Data', '\mylogserver\Log'}
+        self.slog = {'\\mylogserver\\Data', '\\mylogserver\\Log'}
         self.swxj = {
-            '\jd1awxj', '\jd1awxj\images', '\jd1awxj\ini', '\jd1awxj\\netmap'
+            '\\jd1awxj', '\\jd1awxj\\images', '\\jd1awxj\\ini', '\\jd1awxj\\netmap'
         }
 
     #主函数，遍历ip下载
