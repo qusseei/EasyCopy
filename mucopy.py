@@ -137,7 +137,7 @@ class MUCopy:
     def __init__(self, mudir, musa, musb, musc):
         self.mudir = mudir
         self.musa, self.musb, self.musc = musa, musb, musc
-        self.pattern = compile(r'\d{0,4}[-_]{0,1}\d{1,2}[-_]{1}\d{1,2}')
+        self.pattern = compile(r'\d{0,4}[-_]?\d{1,2}[-_]{1}\d{1,2}')
         self.slog = {'e:\mylogserver\Data', 'e:\mylogserver\Log'}
         self.swxj = {
             'e:\jd1awxj', 'e:\jd1awxj\images', 'e:\jd1awxj\ini',
@@ -216,7 +216,7 @@ class MUFtp:
         self.mudir = mudir
         self.mudata = mudata
         self.musa, self.musb, self.musc = musa, musb, musc
-        self.pattern = compile(r'\d{0,4}[-_]{0,1}\d{1,2}[-_]{1}\d{1,2}')
+        self.pattern = compile(r'\d{0,4}[-_]?\d{1,2}[-_]{1}\d{1,2}')
         self.slog = {'\mylogserver\Data', '\mylogserver\Log'}
         self.swxj = {
             '\jd1awxj', '\jd1awxj\images', '\jd1awxj\ini', '\jd1awxj\\netmap'
