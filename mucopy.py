@@ -363,11 +363,7 @@ class MUFtp:
 Mujson = MUJson()
 Mujson.mujson()
 
-<<<<<<< Updated upstream
-mulist = [Mujson.musa, Mujson.musb, Mujson.musc]
-=======
 muList = [Mujson.musa, Mujson.musb, Mujson.musc]
->>>>>>> Stashed changes
 #MUFtp类实例化并调用函数
 Muftp = MUFtp(Mujson.mudir, Mujson.mudata, *muList)
 #MUCopy类实例化并调用函数
