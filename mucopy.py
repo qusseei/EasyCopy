@@ -363,6 +363,7 @@ class MUFtp:
 Mujson = MUJson()
 Mujson.mujson()
 
+mulist = [Mujson.musa, Mujson.musb, Mujson.musc]
 #MUFtp类实例化并调用函数
 Muftp = MUFtp(Mujson.mudir, Mujson.mudata, Mujson.musa, Mujson.musb,
               Mujson.musc)
