@@ -363,12 +363,15 @@ class MUFtp:
 Mujson = MUJson()
 Mujson.mujson()
 
+<<<<<<< Updated upstream
 mulist = [Mujson.musa, Mujson.musb, Mujson.musc]
+=======
+muList = [Mujson.musa, Mujson.musb, Mujson.musc]
+>>>>>>> Stashed changes
 #MUFtp类实例化并调用函数
-Muftp = MUFtp(Mujson.mudir, Mujson.mudata, Mujson.musa, Mujson.musb,
-              Mujson.musc)
+Muftp = MUFtp(Mujson.mudir, Mujson.mudata, *muList)
 #MUCopy类实例化并调用函数
-Mucopy = MUCopy(Mujson.mudir, Mujson.musa, Mujson.musb, Mujson.musc)
+Mucopy = MUCopy(Mujson.mudir, *muList)
 
 #判断是否需要远程,'0':本地,'1':远程,'2':远程+本地,
 if Mujson.muremote is '0':
