@@ -310,8 +310,8 @@ class MUFtp:
 
     def __rtmylog(self, ftp, dic):
         ftp.cwd(dic)
-        filelist = []
-        ftp.retrlines('LIST', filelist.append)
+        filelist = set()
+        ftp.retrlines('LIST', filelist.add)
         ss = ftp.pwd().replace('/', '\\')
         makedirs(join(self.mudir, ss[1:]), exist_ok=True)
         for file in filelist:
